@@ -1,3 +1,4 @@
+'''
 from kafka import KafkaProducer
 import json
 import time
@@ -22,7 +23,34 @@ def simulate_load_test(driver_id):
         produce_message('load_test_metrics', message)
         time.sleep(2)  # Simulate a delay between requests
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     driver_id = "driver_1"  # Replace with a unique identifier for each driver node
     while True:
         simulate_load_test(driver_id)
+'''
+
+from confluent_kafka import Producer
+import requests
+
+# Kafka producer configuration
+producer_config = {
+    'bootstrap.servers': 'localhost:9092',
+}
+
+producer = Producer(producer_config)
+
+# Kafka topic to send test requests
+topic = 'test_requests'
+
+# Send test requests to the Kafka topic
+def send_test_request(request_data):
+    producer.produce(topic, key=None, value=request_data)
+    producer.flush()
+
+# Implement request execution and measurement here
+# ...
+
+if __name__ == '__main__':
+    # Start Kafka producer
+    app.run(port=5000)
+
