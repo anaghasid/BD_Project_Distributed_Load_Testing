@@ -79,6 +79,7 @@ trigger_test_command_topic = 'trigger'
 
 def send_load_test_command(command_data, topic):
     # Simulate sending load test command to Kafka
+    # ALSO write produce part
     print(f"Sending load test command: {command_data} to topic: {topic}")
     return
 
