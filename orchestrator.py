@@ -27,6 +27,7 @@ producer = KafkaProducer(**producer_config)
 server_heartbeats = {}
 def send_load_test_command(command_data, topic):
     # Simulate sending load test command to Kafka
+    # ALSO write produce part
     print(f"Sending load test command: {command_data} to topic: {topic}")
     producer.send(topic, key=None, value=command_data)
     producer.flush()
