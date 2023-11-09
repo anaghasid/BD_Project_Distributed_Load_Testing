@@ -1,7 +1,6 @@
-
-
 from flask import Flask, jsonify
 from kafka import KafkaConsumer
+
 import requests
 
 app = Flask(__name__)
@@ -18,9 +17,12 @@ load_test_commands_topic = 'load_test_commands'
 
 consumer = KafkaConsumer(load_test_commands_topic, **consumer_config)
 
+@app.route('/consume_load_test_commands', methods=['GET'])
 def consume_load_test_commands():
     for message in consumer:
         handle_load_test_command(message.value)
+
+    return jsonify({"message": "Load test commands consumed"})
 
 def handle_load_test_command(command_data):
     # Perform orchestration to start the load test
@@ -38,10 +40,6 @@ def send_request_to_target_server():
     print(f"Request sent to Target Server. Response: {response.text}")
 
 if __name__ == '__main__':
-    # Start Kafka consumer in a separate thread
-    from threading import Thread
-    kafka_consumer_thread = Thread(target=consume_load_test_commands)
-    kafka_consumer_thread.start()
-
-    # Start Flask app
     app.run(port=5001)
+
+
