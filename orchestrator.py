@@ -1,74 +1,19 @@
-# from flask import Flask, jsonify
-# from flask_cors import CORS
-# import requests
-# import json
-
-# app = Flask(__name__)
-
-# # Global variable for test ID
-# current_test_id = 0
-
-# # Kafka producer configuration
-# producer_config = {
-#     'bootstrap.servers': 'localhost:9092',
-# }
-# CORS(app)
-# # Kafka topic to send load test commands
-# load_test_commands_topic = 'test_config'
-# topic_trigger_test_command = 'trigger'
-
-# final_test_id = ''
-# # producer = KafkaProducer(**producer_config)
-
-# @app.route('/',methods = ['GET'])
-# def pp():
-#     return jsonify({"test":"i am a test"})
-
-
-# def send_load_test_command(command_data, topic):
-#     print(command_data,topic)
-#     # producer.send(topic, key=None, value=command_data)
-#     # producer.flush()
-#     pass
-
-# @app.route('/test_configure', methods=['GET'])
-# def test_config():
-#     global current_test_id
-#     # Increment the test ID
-#     current_test_id += 1
-#     global final_test_id
-#     final_test_id = f"tsunami_{current_test_id}"
-#     # Get load test parameters from the request
-#     test_params = json.dumps({"test_id": final_test_id, "test_type": "tsunami", "test_message_delay": 2})
-
-#     # Send load test command to Driver Node via Kafka
-#     send_load_test_command(test_params, load_test_commands_topic)
-
-#     return jsonify({"message": "Test successfully started"})
-
-# @app.route('/trigger_test', methods=['GET'])
-# def trigger_init():
-#     # pass
-#     global final_test_id
-#     if(final_test_id):
-#         trigger_message = json.dumps({"test_id":final_test_id,"trigger":"YES"})
-#     else:
-#         raise("error")
-#     send_load_test_command(trigger_message,topic_trigger_test_command)
-#     return jsonify({"message": "Test ID reset"})
-
-# if __name__ == '__main__':
-#     app.run(port=5000,debug=True)
-
 from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
+from kafka import KafkaProducer,KafkaConsumer
 import requests
 import json
-
+from threading import Thread
+import time
 
 app = Flask(__name__)
 CORS(app)
-
+producer_config = {
+    'bootstrap.servers': 'localhost:9092',
+}
+conumer_hearbeat_conf = {
+    'bootstrap.servers': 'localhost:9092',
+}
 # Global variables for test ID and test configuration
 current_test_id = 0
 current_test_configuration = {}
@@ -76,12 +21,16 @@ current_test_configuration = {}
 # Kafka topic to send load test commands
 load_test_commands_topic = 'test_config'
 trigger_test_command_topic = 'trigger'
+heartbeat_topic = 'heartbeat'
 
+producer = KafkaProducer(**producer_config)
+server_heartbeats = {}
 def send_load_test_command(command_data, topic):
     # Simulate sending load test command to Kafka
     # ALSO write produce part
     print(f"Sending load test command: {command_data} to topic: {topic}")
-    return
+    producer.send(topic, key=None, value=command_data)
+    producer.flush()
 
 @app.route('/')
 def index():
@@ -118,6 +67,50 @@ def trigger_test():
     send_load_test_command(json.dumps(current_test_configuration), trigger_test_command_topic)
 
     return render_template('index.html', message="Test triggered successfully")
+
+def heart_beat_consumer(heartbeat_topic):
+    consumer = KafkaConsumer(conumer_hearbeat_conf)
+    consumer.subscribe([heartbeat_topic])
+
+    try:
+        while True:
+            msg = consumer.poll(1.0)
+            if msg is None:
+                continue
+            if msg.error():
+                print(msg.error())
+                break
+            # Update server heartbeat in the list
+            json_beat = msg.decode('utf-8')
+
+            server_heartbeats[json_beat.get("node_id")] = time.time()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        consumer.close()
+
+def check_server_heartbeats():
+    while True:
+        # Check heartbeats every 0.1 seconds
+        time.sleep(0.005)
+        current_time = time.time()
+        
+        # Check each server's heartbeat
+        for server, heartbeat_time in server_heartbeats.items():
+            if current_time - heartbeat_time > 0.01:
+                print(f"Server {server} is not responding!")
+
+
+@app.before_request
+def heart_beat_function():
+    # Start Kafka consumer thread
+    kafka_consumer_thread = Thread(target=heart_beat_consumer,args=heartbeat_topic)
+    kafka_consumer_thread.start()
+
+    # Start heartbeat checker thread
+    heartbeat_checker_thread = Thread(target=check_server_heartbeats)
+    heartbeat_checker_thread.start()
+
 
 if __name__ == '__main__':
     app.run(port=5000,debug=True)
