@@ -14,7 +14,7 @@ heartbeat_message = "Heartbeat Message"
 heartbeat_topic = "heartbeat_topic"
 heartbeat_interval = 10
 
-def send_heartbeat(producer, heartbeat_topic, heartbeat_message, heartbeat_interval)
+def send_heartbeat(producer, heartbeat_topic, heartbeat_message, heartbeat_interval):
     try:
         while True:
             producer.send(heartbeat_topic, value=heartbeat_message.encode('utf-8'))
@@ -27,6 +27,15 @@ def consume_messages(consumer, topic_name):
     for message in consumer:
         print(f"Received message from {topic_name}: {message.value.decode('utf-8')}")
 
+
+def send_request_to_target_server():
+    # Modify this function to send actual requests to the Target Server
+    target_server_url = 'http://target_server:8000/test_endpoint'
+    response = requests.get(target_server_url)
+
+    # Process the response if needed
+    print(f"Request sent to Target Server. Response: {response.text}")
+    
 
 topic_config = 'test_config'
 topic_trig = 'trigger'
