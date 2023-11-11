@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  zookeeper_node:
+    image: bitnami/zookeeper:latest
+    ports:
+      - "2181:2181"
+    networks:
+      - my-network
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka_node:
+    image: bitnami/kafka:latest
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper_node:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://127.0.0.1:9094
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://127.0.0.1:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_CFG_NODE_ID: 1
+    ports:
+      - "9094:9094"
+    networks:
+      - my-network
+    depends_on:
+      - zookeeper_node
+
+
+  orchestrator_node:
+    image: orchestrator-node:1.0
+    command: flask run --host=0.0.0.0 --port=5000 --debug
+    ports:
+      - "5000:5000"
+    networks:
+      - my-network
+    volumes:
+      - ./orchestrator:/code
+    depends_on:
+      - kafka_node
+  
+  target_server:
+    image: target-server:1.0
+    command: flask run --host=0.0.0.0 --port 5000 --debug
+    ports:
+      - "5003:5000"
+    networks:
+      - my-network
+    volumes:
+      - ./target_server:/code 
+    depends_on:
+      - orchestrator_node
+  
+  driver_node_1:
+    image: driver-node:1.0
+    command: flask run --host=0.0.0.0 --port=5000 --debug
+    ports:
+      - "5001:5000"
+    networks:
+      - my-network
+    volumes:
+      - ./driver:/code
+    depends_on:
+      - orchestrator_node
+
+  driver_node_2:
+    image: driver-node:1.0
+    command: flask run --host=0.0.0.0 --port=5000 --debug
+    ports:
+      - "5002:5000"
+    networks:
+      - my-network
+    volumes:
+      - ./driver:/code
+    depends_on:
+      - orchestrator_node
+  
+
+networks:
+ my-network:

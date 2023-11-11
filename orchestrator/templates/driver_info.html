@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Information</title>
+</head>
+<body>
+    <h1>Node Information</h1>
+    <ul>
+        {% for driver_info in driver_info_list %}
+            <li>
+                <strong>IP Address:</strong> {{ driver_info.node_IP }}<br>
+                <strong>Node ID:</strong> {{ driver_info.node_ID }}<br>
+                <strong>Message Type:</strong> {{ driver_info.message_type }}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
