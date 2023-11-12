@@ -1,4 +1,4 @@
-# BD_Project_Distributed_Load_Testing
+BD_Project_Distributed_Load_Testing
 
 ## Set up dev env
 
@@ -35,6 +35,3 @@ Fix it by bring all containers down and then up again using the commands above
 or adjust time.sleep() in app.py of all 3 folders to make sure kafka has enough time to be set up completely
 
 or make sure bootstrap_servers argument matches with the name of the kafka container in your system which shouldnt be an issue if folder name is `bd_project_distributed_load_testing.`
-
-
-
