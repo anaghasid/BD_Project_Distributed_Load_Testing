@@ -151,22 +151,22 @@ def metrics_consumer(topic):
 
 
 
-@app.before_request
-def heart_beat_function():
+# @app.before_request
+# def heart_beat_function():
     # Start Kafka consumer driver registration
-    kafka_consumer_driver_info = Thread(target=get_driver_info,args=register_topic)
-    kafka_consumer_driver_info.start()
+kafka_consumer_driver_info = Thread(target=get_driver_info,args=register_topic)
+kafka_consumer_driver_info.start()
 
-    kafka_consumer_thread = Thread(target=heart_beat_consumer,args=heartbeat_topic)
-    kafka_consumer_thread.start()
+kafka_consumer_thread = Thread(target=heart_beat_consumer,args=heartbeat_topic)
+kafka_consumer_thread.start()
 
-    # Start heartbeat checker thread
-    heartbeat_checker_thread = Thread(target=check_server_heartbeats)
-    heartbeat_checker_thread.start()
+# Start heartbeat checker thread
+heartbeat_checker_thread = Thread(target=check_server_heartbeats)
+heartbeat_checker_thread.start()
 
-    # Start metrics consumer thread
-    metrics_consumer_thread = Thread(target=metrics_consumer,args=metrics_topic)
-    metrics_consumer_thread.start()
+# Start metrics consumer thread
+metrics_consumer_thread = Thread(target=metrics_consumer,args=metrics_topic)
+metrics_consumer_thread.start()
 
 
 
