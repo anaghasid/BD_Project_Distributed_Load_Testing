@@ -1,6 +1,8 @@
 from flask import Flask
 from kafka import KafkaProducer
 import socket,json,time
+from flask_socketio import SocketIO
+
 app = Flask(__name__)
 
 def register_with_kafka():

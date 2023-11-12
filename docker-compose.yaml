@@ -28,7 +28,10 @@ services:
 
 
   orchestrator_node:
-    image: orchestrator-node:1.0
+    build:
+      context: ./orchestrator
+      dockerfile: Dockerfile  
+    image: orchestrator-node:2.0
     command: flask run --host=0.0.0.0 --port=5000 --debug
     ports:
       - "5000:5000"
@@ -40,7 +43,10 @@ services:
       - kafka_node
   
   target_server:
-    image: target-server:1.0
+    build:
+      context: ./target_server
+      dockerfile: Dockerfile  
+    image: target-server:2.0
     command: flask run --host=0.0.0.0 --port 5000 --debug
     ports:
       - "5003:5000"
@@ -52,7 +58,10 @@ services:
       - orchestrator_node
   
   driver_node_1:
-    image: driver-node:1.0
+    build:
+      context: ./driver
+      dockerfile: Dockerfile  
+    image: driver-node:2.0
     command: flask run --host=0.0.0.0 --port=5000 --debug
     ports:
       - "5001:5000"
@@ -64,7 +73,10 @@ services:
       - orchestrator_node
 
   driver_node_2:
-    image: driver-node:1.0
+    build:
+      context: ./driver
+      dockerfile: Dockerfile  
+    image: driver-node:2.0
     command: flask run --host=0.0.0.0 --port=5000 --debug
     ports:
       - "5002:5000"

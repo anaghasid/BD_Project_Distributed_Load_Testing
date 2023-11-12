@@ -29,10 +29,10 @@ producer = KafkaProducer(**producer_config)
 server_heartbeats = {}
 
 driver_information = []
-def get_driver_info(topic):
+def get_driver_info():
     time.sleep(10)
-    def get_registration_consumer(topic):
-        return KafkaConsumer(topic, consumer_conf)
+    def get_registration_consumer():
+        return KafkaConsumer("register", bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
 
     registration_consumer = get_registration_consumer(topic)
     try:
@@ -49,7 +49,7 @@ def get_driver_info(topic):
     print(driver_information)
 
 
-
+get_driver_info()
 
 @app.route("/driver_info")
 def get_registration_info():
@@ -172,4 +172,4 @@ def heart_beat_function():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
