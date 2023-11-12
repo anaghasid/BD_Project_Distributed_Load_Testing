@@ -12,7 +12,7 @@ From the second time onwards since images are built run
 
 #### NOTE - if you run it with --build flag images will be created again causing memory wastage.
 
-All logs could be inspected using Docker Desktop or running `docker-compose logs <container_id>`
+All logs could be inspected using Docker Desktop or running `docker logs <container_id>`
 
 #### If all 6/6 containers are running then http://localhost:5000 will display something similar to the image attached below, where each node has registered to kafka using its ip_address and container_id
 
