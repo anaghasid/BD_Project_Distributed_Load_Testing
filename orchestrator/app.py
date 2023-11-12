@@ -1,15 +1,17 @@
 from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 from kafka import KafkaProducer,KafkaConsumer
-import requests
 import json
 from threading import Thread
 import time
 from flask_socketio import SocketIO
+import time
 
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+
+time.sleep(10) #do not move this line, because all threads need to wait for kafka brokers to start up completely
 
 CORS(app)
 producer_config = {
