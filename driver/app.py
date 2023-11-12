@@ -4,7 +4,7 @@ import socket,json,time
 app = Flask(__name__)
 
 def register_with_kafka():
-    time.sleep(15) #give some time for kafka to start up completely
+    time.sleep(20) #give some time for kafka to start up completely
 
     registration_producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
 
@@ -22,9 +22,15 @@ def register_with_kafka():
     registration_producer.flush()
     registration_producer.close()
 
+# @app.before_first_request
+# def do_something_only_once():
 register_with_kafka()
+
 
 # view this at http://localhost:5000
 @app.route("/")
 def hello_world():
     return "<p>Hello, World , Drivers</p>"
+
+if __name__ == "__main__":
+    app.run(debug=False)
