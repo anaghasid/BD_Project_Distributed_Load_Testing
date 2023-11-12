@@ -1,3 +1,5 @@
+<!-- templates/test_configure.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +15,7 @@
     {% if message %}
         <p style="color: green;">{{ message }}</p>
     {% endif %}
-    <form action="/test_configure" method="post">
+    <form action="/test_configure" method="post" id="test-form">
         <label for="test_type">Test Type:</label>
         <input type="text" id="test_type" name="test_type" required><br>
         <label for="test_message_delay">Test Message Delay:</label>
@@ -23,5 +25,21 @@
     <form action="/trigger_test" method="get">
         <button type="submit">Trigger Test</button>
     </form>
+
+    <ul id="kafka-messages"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Event listener for receiving Kafka messages
+        socket.on('kafka_message', function (message) {
+            // Handle the Kafka message on the frontend
+            var messagesList = document.getElementById('kafka-messages');
+            var listItem = document.createElement('li');
+            listItem.appendChild(document.createTextNode(message));
+            messagesList.appendChild(listItem);
+        });
+    </script>
 </body>
 </html>
