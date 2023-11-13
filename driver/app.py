@@ -4,7 +4,7 @@ import socket,json,time
 app = Flask(__name__)
 
 def register_with_kafka():
-    time.sleep(20) #give some time for kafka to start up completely
+    time.sleep(32) #give some time for kafka to start up completely
 
     registration_producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
 
