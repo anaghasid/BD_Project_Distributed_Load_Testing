@@ -19,9 +19,9 @@ current_test_id = 0
 current_test_configuration = {}
 
 # Kafka topic to send load test commands
-load_test_commands_topic = 'test_config'
-trigger_test_command_topic = 'trigger'
-heartbeat_topic = 'heartbeat'
+load_test_commands_topic = "test_config"
+trigger_test_command_topic = "trigger"
+heartbeat_topic = "heartbeat"
 
 producer = KafkaProducer(**producer_config)
 server_heartbeats = {}
@@ -106,7 +106,7 @@ def check_server_heartbeats():
 def heart_beat_function():
     # Start Kafka consumer thread
     kafka_consumer_thread = Thread(target=heart_beat_consumer,args=heartbeat_topic)
-    kafka_consumer_thread.start()
+    kafka_consumer_thread.start()   
 
     # Start heartbeat checker thread
     heartbeat_checker_thread = Thread(target=check_server_heartbeats)
