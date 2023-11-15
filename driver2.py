@@ -3,7 +3,7 @@ from kafka import KafkaConsumer, KafkaProducer
 import time
 import requests
 import uuid
-
+import json
 
 producer_config = {
     'bootstrap_servers': 'your_kafka_broker(s)',

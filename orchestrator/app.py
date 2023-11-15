@@ -171,6 +171,9 @@ heartbeat_checker_thread.start()
 metrics_consumer_thread = Thread(target=metrics_consumer)
 metrics_consumer_thread.start()
 
+kafka_consumer_thread.join()
+heartbeat_checker_thread.join()
+metrics_consumer_thread.join()
 
 
 
