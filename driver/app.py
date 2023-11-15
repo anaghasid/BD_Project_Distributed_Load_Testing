@@ -15,7 +15,8 @@ topic_config = 'test_config'
 topic_trig = 'trigger'
 topic_heartbeat = 'heartbeat'
 topic_metrics = "metrics"
-target_url = "WRITE###**"
+# target_url = "WRITE###**"
+target_url = "http://localhost:5003/get_message"
 response_times = []
 
 
