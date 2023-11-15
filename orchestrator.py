@@ -18,11 +18,14 @@ producer_config = {
 consumer_conf = {
      'bootstrap_servers':"bd_project_distributed_load_testing-kafka_node-1:9092",
 }
+# Global variables for test ID and test configuration
+current_test_id = 0
+current_test_configuration = {}
+
+# Kafka topic to send load test commands
 load_test_commands_topic = 'test_config'
 trigger_test_command_topic = 'trigger'
 heartbeat_topic = 'heartbeat'
-register_topic = 'register'
-metrics_topic = 'metrics'
 
 producer = KafkaProducer(**producer_config)
 
