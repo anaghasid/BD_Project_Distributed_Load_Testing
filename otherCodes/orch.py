@@ -16,27 +16,14 @@ import time
 
 
 
-
-
 app = Flask(__name__)
 
 socketio = SocketIO(app)
 
 
-
  #do not move this line, because all threads need to wait for kafka brokers to start up completely
 
-
-
 CORS(app)
-
-producer_config = {
-
-     'bootstrap_servers':"bd_project_distributed_load_testing-kafka_node-1:9092",
-
-}
-
-
 
 load_test_commands_topic = "test_config"
 
@@ -44,13 +31,9 @@ trigger_test_command_topic = "trigger"
 
 heartbeat_topic = "heartbeat"
 
-
-
 metrics_topic = "metrics"
 
 current_test_id  = 0
-
-
 
 
 
@@ -82,15 +65,12 @@ def get_driver_info(topic):
 
     try:
 
-        driver_count=3
+        driver_count=2
 
         for message in registration_consumer:
-
-            print("Received a message")
-
             driver = json.loads(message.value.decode("utf-8"))
 
-            #print(driver)
+            # print(driver)
 
             driver_information.append(driver)
 
@@ -104,7 +84,7 @@ def get_driver_info(topic):
 
         print(f"Error processing registration_consumers: {str(e)}")
 
-    print(driver_information)
+    # print(driver_information)
 
 
 
@@ -126,9 +106,7 @@ def send_load_test_command(command_data, topic):
 
     # Simulate sending load test command to Kafka
 
-    # ALSO write produce part
-
-    producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
+    producer = KafkaProducer(bootstrap_servers="localhost:9092")
 
     command_data = command_data.encode('utf-8')
 
@@ -215,123 +193,53 @@ def trigger_test():
 
 
 def heart_beat_consumer():
-
-    consumer = KafkaConsumer(bootstrap_servers='localhost:9092')
-
-    consumer.subscribe([heartbeat_topic])
-
-
-
+    consumer = KafkaConsumer(heartbeat_topic,bootstrap_servers='localhost:9092')
     try:
+        # while True:
 
-        while True:
-
-            msg = consumer.poll(1.0)
-
-            if msg is None:
-
-                continue
-
-            for message in msg:
-
-            	print(message)
-
-            	# Update server heartbeat in the list
-
-            	json_beat = json.loads(message.value.decode('utf-8'))
-
-
-
-            	server_heartbeats[json_beat.get("node_id")] = time.time()
+        #     msg = consumer.poll(0.05)
+        #if msg is None:
+        #    continue
+        for message in consumer:
+            # print(message)
+            # Update server heartbeat in the list
+            json_beat = json.loads(message.value.decode('utf-8'))
+            server_heartbeats[json_beat.get("node_id")] = time.time()
 
     except KeyboardInterrupt:
-
         pass
-
     finally:
-
         consumer.close()
+    
 
 
 
 def check_server_heartbeats():
-
     while True:
-
         # Check heartbeats every 0.1 seconds
-
-        time.sleep(0.005)
-
+        time.sleep(0.01)
         current_time = time.time()
-
-        
-
         # Check each server's heartbeat
-
         for server, heartbeat_time in server_heartbeats.items():
-
-            if current_time - heartbeat_time > 0.01:
-
+            if current_time - heartbeat_time > 0.1:
                 print(f"Server {server} is not responding!")
-
-
+            #else:
+            #   print("yes")
 
 def metrics_consumer():
-
     consumer = KafkaConsumer(metrics_topic,bootstrap_servers='localhost:9092')
-
     try:
-
-        while True:
-
-            msg = consumer.poll(1.0)
-
-            if msg is None:
-
-                continue
-
-            #if msg.error():
-
-            #    print(msg.error())
-
-            #   break
-
-            for message in msg:
-
-            # Update server heartbeat in the list
-
-            	json_metric = json.loads(message.decode('utf-8'))
-
-            	
-
-                socketio.emit('metric_update',json_metric)
-
+        for message in consumer:
+        	json_metric = json.loads(message.decode('utf-8'))
+        	socketio.emit('metric_update',json_metric)
     except KeyboardInterrupt:
-
         pass
-
     finally:
-
         consumer.close()
-
-
-
-
-
-
-
-
-
-
-
-# @app.before_request
-
-# def heart_beat_function():
-
-    # Start Kafka consumer driver registration
 
 get_driver_info(1) 
 kafka_consumer_thread = Thread(target=heart_beat_consumer)
+
 
 kafka_consumer_thread.start()
 # # Start heartbeat checker thread
@@ -340,19 +248,13 @@ heartbeat_checker_thread.start()
 # Start metrics consumer thread
 metrics_consumer_thread = Thread(target=metrics_consumer)
 metrics_consumer_thread.start()
-kafka_consumer_thread.join()
-heartbeat_checker_thread.join()
-metrics_consumer_thread.join()
+#kafka_consumer_thread.join()
+#heartbeat_checker_thread.join()
+#metrics_consumer_thread.join()
+
+
 
 if __name__ == "__main__":
-
- 
-
-
-
-    app.run(debug=True,port = 5000)
-
-    #print("hii in orchestration")
-
-    
+    app.run(debug=True,port = 6500)
+    print("Running")
 
