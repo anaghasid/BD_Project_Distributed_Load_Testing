@@ -74,7 +74,7 @@ def publish_metrics(test_id, report_id, metrics):
     )
 
     metrics_message = {
-        "node_id": node_id,
+        "node_id": node5_id,
         "test_id": test_id,
         "report_id": report_id,
         "metrics": metrics

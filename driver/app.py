@@ -98,6 +98,7 @@ def consume_commands():
     global consumer_config
     global topic_config
     global topic_trig
+    print("hiiii")
     consumer = KafkaConsumer(consumer_config)
     # or **consumer_config?
     consumer.subscribe([topic_config, topic_trig])
@@ -155,7 +156,11 @@ def send_heartbeat(registration_info):
 # def do_something_only_once():
 node_info = register_with_kafka()
 kafka_consumer_thread = Thread(target=consume_commands)
+<<<<<<< HEAD
+kafka_consumer_thread.start()
+=======
 heartbeat_checker_thread = Thread(target=send_heartbeat, args=node_info)
+>>>>>>> ef8ac50e1bd1fdb2eb5b900e62fa908d592ddcae
 
 
 # view this at http://localhost:5000
