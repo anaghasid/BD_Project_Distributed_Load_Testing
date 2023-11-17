@@ -15,7 +15,8 @@ topic_config = 'test_config'
 topic_trig = 'trigger'
 topic_heartbeat = 'heartbeat'
 topic_metrics = "metrics"
-target_url = "WRITE###**"
+# target_url = "WRITE###**"
+target_url = "http://localhost:5003/get_message"
 response_times = []
 producer_config = {
     'bootstrap_servers': 'your_kafka_broker(s)',
@@ -24,8 +25,7 @@ producer_config = {
 
 
 def register_with_kafka():
-    time.sleep(20) #give some time for kafka to start up completely
-
+    time.sleep(15)
     registration_producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
 
     # Fetch IP of container

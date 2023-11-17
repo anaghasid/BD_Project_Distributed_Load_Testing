@@ -11,7 +11,7 @@ import time
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-time.sleep(10) #do not move this line, because all threads need to wait for kafka brokers to start up completely
+ #do not move this line, because all threads need to wait for kafka brokers to start up completely
 
 CORS(app)
 producer_config = {
@@ -20,23 +20,25 @@ producer_config = {
 consumer_conf = {
      'bootstrap_servers':"bd_project_distributed_load_testing-kafka_node-1:9092",
 }
-load_test_commands_topic = 'test_config'
-trigger_test_command_topic = 'trigger'
-heartbeat_topic = 'heartbeat'
-register_topic = 'register'
-metrics_topic = 'metrics'
+load_test_commands_topic = "test_config"
+trigger_test_command_topic = "trigger"
+heartbeat_topic = "heartbeat"
 
-producer = KafkaProducer(**producer_config)
+metrics_topic = "metrics"
+current_test_id  = 0
+
 
 server_heartbeats = {}
 
 driver_information = []
+# time.sleep(10)
 def get_driver_info(topic):
+    print("hi")
     time.sleep(10)
-    def get_registration_consumer(topic):
-        return KafkaConsumer(topic, consumer_conf)
+    # def get_registration_consumer():
+    register_topic = "register"
 
-    registration_consumer = get_registration_consumer(topic)
+    registration_consumer = KafkaConsumer(register_topic, consumer_conf)
     try:
         driver_count=3
         for message in registration_consumer:
@@ -60,6 +62,8 @@ def get_registration_info():
 def send_load_test_command(command_data, topic):
     # Simulate sending load test command to Kafka
     # ALSO write produce part
+    producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
+
     print(f"Sending load test command: {command_data} to topic: {topic}")
     producer.send(topic, key=None, value=command_data)
     producer.flush()
@@ -71,6 +75,7 @@ def index():
 @app.route('/test_configure', methods=['POST'])
 def configure_test():
     global current_test_id, current_test_configuration
+    
     # Increment the test ID
     current_test_id += 1
 
@@ -100,7 +105,7 @@ def trigger_test():
 
     return render_template('index.html', message="Test triggered successfully")
 
-def heart_beat_consumer(heartbeat_topic):
+def heart_beat_consumer():
     consumer = KafkaConsumer(consumer_conf)
     consumer.subscribe([heartbeat_topic])
 
@@ -132,8 +137,8 @@ def check_server_heartbeats():
             if current_time - heartbeat_time > 0.01:
                 print(f"Server {server} is not responding!")
 
-def metrics_consumer(topic):
-    consumer = KafkaConsumer(topic,consumer_conf)
+def metrics_consumer():
+    consumer = KafkaConsumer(metrics_topic,consumer_conf)
     try:
         while True:
             msg = consumer.poll(1.0)
@@ -156,22 +161,25 @@ def metrics_consumer(topic):
 # @app.before_request
 # def heart_beat_function():
     # Start Kafka consumer driver registration
-kafka_consumer_driver_info = Thread(target=get_driver_info,args=register_topic)
-kafka_consumer_driver_info.start()
-
-kafka_consumer_thread = Thread(target=heart_beat_consumer,args=heartbeat_topic)
-kafka_consumer_thread.start()
-
-# Start heartbeat checker thread
-heartbeat_checker_thread = Thread(target=check_server_heartbeats)
-heartbeat_checker_thread.start()
-
-# Start metrics consumer thread
-metrics_consumer_thread = Thread(target=metrics_consumer,args=metrics_topic)
-metrics_consumer_thread.start()
 
 
 
-
+get_driver_info(1)
 if __name__ == "__main__":
+
     app.run(debug=True)
+    print("hii in orchestration")
+    # kafka_consumer_thread = Thread(target=heart_beat_consumer)
+    # kafka_consumer_thread.start()
+
+    # # Start heartbeat checker thread
+    # heartbeat_checker_thread = Thread(target=check_server_heartbeats)
+    # heartbeat_checker_thread.start()
+
+    # # Start metrics consumer thread
+    # metrics_consumer_thread = Thread(target=metrics_consumer)
+    # metrics_consumer_thread.start()
+
+    # kafka_consumer_thread.join()
+    # heartbeat_checker_thread.join()
+    # metrics_consumer_thread.join()

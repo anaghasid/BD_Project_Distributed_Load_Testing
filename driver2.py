@@ -3,7 +3,7 @@ from kafka import KafkaConsumer, KafkaProducer
 import time
 import requests
 import uuid
-
+import json
 
 producer_config = {
     'bootstrap_servers': 'your_kafka_broker(s)',
@@ -59,7 +59,7 @@ node_id = str(uuid.uuid4())
 # Function to send HTTP requests to the target web server
 def send_http_request(url):
     # Implement your HTTP request logic here
-    target_server_url = 'http://target_server:8000/test_endpoint'
+    target_server_url = 'http://target_server:5003/test_endpoint'
     response = requests.get(target_server_url)
     # Process the response if needed
     print(f"Request sent to Target Server. Response: {response.text}")

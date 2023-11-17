@@ -5,10 +5,11 @@ from flask_socketio import SocketIO
 
 app = Flask(__name__)
 
-def register_with_kafka():
-    time.sleep(15) #give some time for kafka to start up completely
 
+def register_with_kafka():
+    time.sleep(12) #give some time for kafka to start up completely
     registration_producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
+
 
     # Fetch IP of container
     hostname = socket.gethostname()
@@ -30,3 +31,15 @@ register_with_kafka()
 @app.route("/")
 def hello_world():
     return "<p>Hello, World from target server</p>"
+
+@app.route("/test_endpoint")
+
+def get_message():
+    data = json.loads({"message":"hiiiii this is message from target server"})
+    return data
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
+
