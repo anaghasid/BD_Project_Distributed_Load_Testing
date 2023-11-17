@@ -95,6 +95,7 @@ def consume_commands():
     global consumer_config
     global topic_config
     global topic_trig
+    print("hiiii")
     consumer = KafkaConsumer(consumer_config)
     # or **consumer_config?
     consumer.subscribe([topic_config, topic_trig])
@@ -135,6 +136,7 @@ def consume_commands():
 # def do_something_only_once():
 node_info = register_with_kafka()
 kafka_consumer_thread = Thread(target=consume_commands)
+kafka_consumer_thread.start()
 
 
 # view this at http://localhost:5000
