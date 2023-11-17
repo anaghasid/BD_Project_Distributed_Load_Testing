@@ -18,7 +18,10 @@ topic_metrics = "metrics"
 # target_url = "WRITE###**"
 target_url = "http://localhost:5003/get_message"
 response_times = []
-
+producer_config = {
+    'bootstrap_servers': 'your_kafka_broker(s)',
+    # Other producer configuration options
+}
 
 
 def register_with_kafka():
@@ -131,12 +134,33 @@ def consume_commands():
         consumer.close()
 
 
+def send_heartbeat(registration_info):
+    producer = KafkaProducer(**producer_config)
+    global topic_heartbeat
+    heartbeat_interval = 0.5
+    heartbeat_message = {
+        "node_id": registration_info['node_ID'],
+        "heartbeat": "YES"
+    }
+    try:
+        while True:
+            producer.send(topic_heartbeat, value=heartbeat_message.encode('utf-8'))
+            producer.flush()  # Ensure the message is sent immediately
+            time.sleep(heartbeat_interval)
+    except KeyboardInterrupt:
+        pass
+
+
 
 # @app.before_first_request
 # def do_something_only_once():
 node_info = register_with_kafka()
 kafka_consumer_thread = Thread(target=consume_commands)
+<<<<<<< HEAD
 kafka_consumer_thread.start()
+=======
+heartbeat_checker_thread = Thread(target=send_heartbeat, args=node_info)
+>>>>>>> ef8ac50e1bd1fdb2eb5b900e62fa908d592ddcae
 
 
 # view this at http://localhost:5000
