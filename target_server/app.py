@@ -5,10 +5,10 @@ from flask_socketio import SocketIO
 
 app = Flask(__name__)
 
-registration_producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
 
 def register_with_kafka():
-    time.sleep(15) #give some time for kafka to start up completely
+    time.sleep(12) #give some time for kafka to start up completely
+    registration_producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
 
 
     # Fetch IP of container

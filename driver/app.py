@@ -22,8 +22,7 @@ response_times = []
 
 
 def register_with_kafka():
-    time.sleep(32) #give some time for kafka to start up completely
-
+    time.sleep(15)
     registration_producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
 
     # Fetch IP of container
