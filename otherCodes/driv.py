@@ -85,8 +85,6 @@ def register_with_kafka():
 
 
 
-
-
 def send_http_request(node_id):
 
     try:
