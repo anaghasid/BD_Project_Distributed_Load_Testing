@@ -135,7 +135,9 @@ def metrics_consumer():
     consumer = KafkaConsumer(metrics_topic, bootstrap_servers='localhost:9092')
     try:
         for message in consumer:
-            json_metric = json.loads(message.decode('utf-8'))
+            json_metric = json.loads(message.value.decode('utf-8'))
+            print(json_metric)
+            print()
             socketio.emit('metric_update', json_metric)
     except KeyboardInterrupt:
         pass

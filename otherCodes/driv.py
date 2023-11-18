@@ -4,6 +4,7 @@ from flask import Flask
 from kafka import KafkaProducer, KafkaConsumer
 from threading import Thread
 import socket, json, time, requests
+import uuid
 
 app = Flask(__name__)
 
@@ -22,7 +23,7 @@ topic_trig = "trigger"
 topic_heartbeat = "heartbeat"
 topic_metrics = "metrics"
 
-target_url = "http://localhost:5003/get_message"
+target_url = "http://localhost:5002/test_endpoint"
 response_times = []
 
 def register_with_kafka():
@@ -39,22 +40,8 @@ def register_with_kafka():
     registration_producer.close()
     return registration_info
 
-def send_http_request(node_id):
-    try:
-        start_time = time.time()
-        response = requests.get(target_url)
-        end_time = time.time()
 
-        metrics = {
-            "node_id": node_id,
-            "response_time": float((end_time - start_time) * 1000)  # in milliseconds
-        }
-
-        response_times.append(metrics["response_time"])
-    except Exception as e:
-        print(f"Error sending request: {str(e)}")
-
-def publish_metrics(responses):
+def publish_metrics(test_id,responses):
     producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
     ascending_responses = sorted(responses)
@@ -64,20 +51,41 @@ def publish_metrics(responses):
         "min_latency": ascending_responses[0],
         "max_latency": ascending_responses[len(responses) - 1]
     }
-
-    producer.send(topic_metrics, key=node_info["node_id"], value=metrics)
+    metrics_message = {
+        "node_id": node_info["node_id"],
+        "test_id": test_id,
+        "report_id": "aneeshkb420",
+        "metrics": metrics
+    }
+    print("Metrics message sending",metrics_message)
+    producer.send(topic_metrics, value=json.dumps(metrics_message).encode('utf-8'))
     producer.flush()
 
 def perform_load_test(test_id, test_type, delay, total_req):
-    # interval = 1.0 / requests_per_second
-    # end_time = time.time() + duration_seconds
+    if test_type == 'tsunami':
+        for i in range(int(total_req)):
+            start = time.time()
+            response = requests.get(target_url)
+            end = time.time()
+            latency = float((end - start) * 1000)
+            response_times.append(latency)
 
-    # while time.time() < end_time:
-    #     send_http_request(node_info["node_id"])
-    #     time.sleep(interval)
 
-    # publish_metrics(response_times)
-    pass
+            # doing this to take out the time taken for one respone
+            # pray to god that delay > latency
+            time.sleep(int(delay)*1000-latency)
+        publish_metrics(test_id,response_times)
+
+    if test_type=='avalanche':
+        for i in range(int(total_req)):
+            print("request number:", i)
+            start = time.time()
+            response = requests.get(target_url)
+            end = time.time()
+            latency = float((end - start) * 1000)
+            response_times.append(latency)
+        publish_metrics(test_id,response_times)
+
 
 def consume_commands():
     global consumer_config, topic_config, topic_trig
@@ -98,11 +106,13 @@ def consume_commands():
                 interval_seconds = command.get("test_message_delay")
                 total_requests = command.get("message_count_per_driver")
                 print("Received Test Configuration:")
-                print(f"Test ID: {test_id}, Test type: {test_type}, Interval: {interval_seconds} seconds")
+                print(f"Test ID: {test_id}, Test type: {test_type}, Interval: {interval_seconds} seconds\n")
+
 
             elif msg_topic == "trigger":
                 print("Received Trigger Message. Starting Load Test...")
                 perform_load_test(test_id, test_type, interval_seconds, total_requests)
+
     except KeyboardInterrupt:
         pass
     finally:
@@ -115,7 +125,6 @@ def send_heartbeat(registration_info):
         "node_id": registration_info,
         "heartbeat": "YES"
     }
-
     try:
         while True:
             sending = json.dumps(heartbeat_message)
