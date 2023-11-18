@@ -1,0 +1,51 @@
+<!-- templates/test_configure.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Configuration</title>
+</head>
+<body>
+    <h1>Test Configuration</h1>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    {% if message %}
+        <p style="color: green;">{{ message }}</p>
+    {% endif %}
+    <form action="/test_configure" method="post" id="test-form">
+        <label for="test_type">Test Type:</label>
+        <input type="text" id="test_type" name="test_type" required><br>
+        <label for="test_message_delay">Test Message Delay:</label>
+        <input type="text" id="test_message_delay" name="test_message_delay" required><br>
+        <button type="submit">Done</button>
+    </form>
+    <form action="/trigger_test" method="get">
+        <button type="submit">Trigger Test</button>
+    </form>
+
+    <ul id="kafka-messages"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Event listener for receiving Kafka messages
+        socket.on('kafka_message', function (message) {
+            // Handle the Kafka message on the frontend
+            var messagesList = document.getElementById('kafka-messages');
+            var listItem = document.createElement('li');
+            listItem.appendChild(document.createTextNode(message));
+            messagesList.appendChild(listItem);
+        });
+    </script>
+</body>
+</html>
+
+
+
+    for message in consumer:
+        json_metric = json.loads(message.decode('utf-8'))
+        socketio.emit('metric_update',json_metric)
