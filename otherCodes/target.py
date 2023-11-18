@@ -1,90 +1,38 @@
 from flask import Flask
-
 from kafka import KafkaProducer
-
-import socket,json,time
-
+import socket, json, time
 from flask_socketio import SocketIO
-
-
 
 app = Flask(__name__)
 
-
-
-
-
 def register_with_kafka():
-
     #time.sleep(12) #give some time for kafka to start up completely
-
     registration_producer = KafkaProducer(bootstrap_servers="localhost:9092")
 
-
-
-
-
     # Fetch IP of container
-
     hostname = socket.gethostname()
-
     node_IP = socket.gethostbyname(hostname)
 
-
-
-    # Set node_id to the hostname of the container,will be unique!!
-
-    node_ID = hostname+'1'
-
-
+    # Set node_id to the hostname of the container, will be unique!!
+    node_ID = hostname + '1'
 
     registration_info = {"node_IP": node_IP, "node_ID": node_ID, "message_type": "TARGET_SERVER_NODE_REGISTER"}
 
-
-
     registration_producer.send("register", json.dumps(registration_info).encode("utf-8"))
-
     print("send driver info", registration_info)
-
     registration_producer.flush()
-
     registration_producer.close()
-
-
 
 register_with_kafka()
 
-
-
-# view this at http://localhost:5003
-
 @app.route("/")
-
 def hello_world():
-
     return "<p>Hello, World from target server</p>"
 
-
-
 @app.route("/test_endpoint")
-
-
-
 def get_message():
-
-    data = json.loads({"message":"hiiiii this is message from target server"})
-
+    data = json.loads({"message": "hiiiii this is a message from the target server"})
     return data
 
-
-
 if __name__ == "__main__":
-
-    app.run(debug=True,port = 5002)
-
-
-
-
-
-
-
+    app.run(debug=True, port=5002)
