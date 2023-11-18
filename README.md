@@ -2,6 +2,8 @@
 
 ## Set up dev env
 
+### Note in the compose file that we are not running it in the debug mode. Results may be different in that case.
+
 For the first time create the images and then run the containers using the command
 
 `docker-compose up -d --build`

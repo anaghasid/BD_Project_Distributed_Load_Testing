@@ -6,40 +6,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Configuration</title>
+    <link rel="stylesheet" href="/static/styles/index.css">
 </head>
 <body>
-    <h1>Test Configuration</h1>
-    {% if error %}
+    <!-- {% if error %}
         <p style="color: red;">{{ error }}</p>
     {% endif %}
     {% if message %}
         <p style="color: green;">{{ message }}</p>
-    {% endif %}
-    <form action="/test_configure" method="post" id="test-form">
-        <label for="test_type">Test Type:</label>
-        <input type="text" id="test_type" name="test_type" required><br>
-        <label for="test_message_delay">Test Message Delay:</label>
-        <input type="text" id="test_message_delay" name="test_message_delay" required><br>
-        <button type="submit">Done</button>
-    </form>
-    <form action="/trigger_test" method="get">
-        <button type="submit">Trigger Test</button>
-    </form>
+    {% endif %} -->
+    <div class="grid-container">
+        <div class="config-container">
+            <h1>Test Configurations</h1>
+            <form action="/test_configure" method="post" id="test-form">
+                <label for="test_type">Test Type:</label>
+                <select id="test_type" name="test_type" required>
+                    <option value="tsunami">Tsunami</option>
+                    <option value="avalanche">Avalanche</option>
+                </select><br>
+                <label for="test_message_delay">Test Message Delay:</label>
+                <input type="text" id="test_message_delay" name="test_message_delay" required><br>
+                <button type="submit">Done</button>
+            </form>
+            <form action="/trigger_test" method="get">
+                <button type="submit">Trigger Test</button>
+            </form>
+        </div>
+        <div class="metrics-container">
+            <h1>Metrics and Heartbeats</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Node ID</th>
+                        <th>Heartbeat</th>
+                    </tr>
+                </thead>
+                <tbody id="heartbeat_body"></tbody>        
+            </table>
+        </div>
+    </div>
 
-    <ul id="kafka-messages"></ul>
+    <!-- <ul id="kafka-messages"></ul> -->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
     <script>
         var socket = io.connect('http://' + document.domain + ':' + location.port);
 
-        // Event listener for receiving Kafka messages
-        socket.on('kafka_message', function (message) {
-            // Handle the Kafka message on the frontend
-            var messagesList = document.getElementById('kafka-messages');
-            var listItem = document.createElement('li');
-            listItem.appendChild(document.createTextNode(message));
-            messagesList.appendChild(listItem);
+        // Event listener for receiving Kafka heartbeat messages
+        socket.on('update_server_heartbeats', function (heartbeats) {
+
+            var heartbeatBody = document.getElementById('heartbeat_body');
+            heartbeatBody.innerHTML = ''; // Clear existing entries
+
+            // Iterate through the heartbeats and add rows to the table
+            for (var nodeId in heartbeats) {
+                var heartbeat = heartbeats[nodeId];
+                var row = heartbeatBody.insertRow();
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+                cell1.innerHTML = nodeId;
+                cell2.innerHTML = heartbeat;
+            }
         });
+
     </script>
 </body>
 </html>

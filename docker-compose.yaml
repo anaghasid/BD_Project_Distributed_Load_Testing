@@ -32,7 +32,7 @@ services:
       context: ./orchestrator
       dockerfile: Dockerfile  
     image: orchestrator-node:3.0
-    command: flask run --host=0.0.0.0 --port=5000 --debug
+    command: flask run --host=0.0.0.0 --port=5000 
     ports:
       - "5000:5000"
     networks:
@@ -47,7 +47,7 @@ services:
       context: ./target_server
       dockerfile: Dockerfile  
     image: target-server:3.0
-    command: flask run --host=0.0.0.0 --port 5000 --debug
+    command: flask run --host=0.0.0.0 --port 5000 
     ports:
       - "5003:5000"
     networks:
@@ -62,7 +62,7 @@ services:
       context: ./driver
       dockerfile: Dockerfile  
     image: driver-node:3.0
-    command: flask run --host=0.0.0.0 --port=5000 --debug
+    command: flask run --host=0.0.0.0 --port=5000 
     ports:
       - "5001:5000"
     networks:
@@ -77,7 +77,7 @@ services:
       context: ./driver
       dockerfile: Dockerfile  
     image: driver-node:3.0
-    command: flask run --host=0.0.0.0 --port=5000 --debug
+    command: flask run --host=0.0.0.0 --port=5000 
     ports:
       - "5002:5000"
     networks:

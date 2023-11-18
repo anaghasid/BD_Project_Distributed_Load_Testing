@@ -30,3 +30,6 @@ register_with_kafka()
 @app.route("/")
 def hello_world():
     return "<p>Hello, World from target server</p>"
+
+if __name__ == "__main__":
+    app.run(debug=True)

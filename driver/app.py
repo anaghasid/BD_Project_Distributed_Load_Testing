@@ -1,10 +1,12 @@
 from flask import Flask
 from kafka import KafkaProducer
 import socket,json,time
+from heartbeat_producer import heartbeat_producer
+from threading import Thread
 app = Flask(__name__)
 
 def register_with_kafka():
-    time.sleep(20) #give some time for kafka to start up completely
+    time.sleep(15) #give some time for kafka to start up completely
 
     registration_producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
 
@@ -26,11 +28,14 @@ def register_with_kafka():
 # def do_something_only_once():
 register_with_kafka()
 
+heartbeat_thread = Thread(target=heartbeat_producer)
+heartbeat_thread.start()
+
 
 # view this at http://localhost:5000
 @app.route("/")
 def hello_world():
-    return "<p>Hello, World , Drivers</p>"
+    return "<p>Hello, World from Driver</p>"
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
