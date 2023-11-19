@@ -9,6 +9,7 @@ import time
 from flask_socketio import SocketIO
 import uuid
 import csv
+import pandas as pd
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -124,8 +125,44 @@ def check_server_heartbeats():
         time.sleep(0.008)
         for server, heartbeat_time in server_heartbeats.items():
             current_time = time.time()
-            if current_time - heartbeat_time > 0.1 and heartbeat_time != 0:
+            if current_time - heartbeat_time > 1.0 and heartbeat_time != 0:
                 print(f"Server {server} is not responding!")
+
+
+def weighted_metrics(df):
+    test_id = df["test_id"]
+    # Aggregate metrics
+    total_requests = df['number_of_requests'].sum()
+    latency_mean = (df['mean_latency'] * df['number_of_requests']).sum() / total_requests
+    latency_min = (df['min_latency']).min()
+    latency_median = (df['median_latency']).median()
+    latency_max = (df['max_latency']).max() 
+    return pd.Series({
+        'test_id': test_id,
+        'mean_Latency': latency_mean,
+        'min_Latency': latency_min,
+        'max_Latency': latency_max,
+        'median_latency': latency_median,
+        'number_of_request':total_requests
+    })
+
+def aggregated_driver():
+    df = pd.read_csv('dashboard.csv')
+   
+    aggregated_driver = df.groupby(['node_id','test_id']).apply(weighted_metrics).reset_index()
+    with open('agg_driver','a') as file:
+        csv_writer = csv.writer(file)
+        csv_writer.writerows([aggregated_driver])
+    
+    total_aggregate = df.apply(weighted_metrics)
+
+    socketio.emit('driver_aggregate',aggregated_driver)
+    socketio.emit('total_aggregate',total_aggregate)
+
+
+    
+
+
 
 def store_metric(metrics):
     with open('dashboard.csv','a') as f:
@@ -135,20 +172,26 @@ def store_metric(metrics):
         num_requests = metrics["num_requests"]
         mean = metrics["metrics"]["mean_latency"]
         median = metrics["metrics"]["median_latency"]
-        min = metrics["metrics"]["min_latency"]
-        max = metrics["metrics"]["max_latency"]
+        mini = metrics["metrics"]["min_latency"]
+        maxi = metrics["metrics"]["max_latency"]
         csv_writer = csv.writer(f)
-        csv_writer.writerows([node_id,test_id,report_id,num_requests,mean,median,min,max])
+        csv_writer.writerow([node_id,test_id,report_id,num_requests,mean,median,mini,maxi])
 
 def metrics_consumer():
     consumer = KafkaConsumer(metrics_topic, bootstrap_servers='localhost:9092')
     try:
+        st = time.time()
         for message in consumer:
             json_metric = json.loads(message.value.decode('utf-8'))
             print(json_metric)
             store_metric(json_metric)
             print()
+            if time.time() - st >=2:
+                aggregated_driver()
+                st = time.time()
+            
             socketio.emit('metric_update', json_metric)
+
     except KeyboardInterrupt:
         pass
     finally:
