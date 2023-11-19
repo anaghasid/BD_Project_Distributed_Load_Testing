@@ -54,7 +54,8 @@ def publish_metrics(test_id,responses):
     metrics_message = {
         "node_id": node_info["node_id"],
         "test_id": test_id,
-        "report_id": "aneeshkb420",
+        "report_id": str(uuid.uuid4()),
+        "num_requests":len(responses),
         "metrics": metrics
     }
     print("Metrics message sending",metrics_message)
@@ -63,17 +64,26 @@ def publish_metrics(test_id,responses):
 
 def perform_load_test(test_id, test_type, delay, total_req):
     if test_type == 'tsunami':
+        metrics_start = time.time()
         for i in range(int(total_req)):
             start = time.time()
             response = requests.get(target_url)
             end = time.time()
-            latency = float((end - start) * 1000)
+            latency = float((end - start))
+            print("Latency is",latency)
             response_times.append(latency)
 
 
+            print("time passed=",time.time() - metrics_start)
+            if time.time() - metrics_start >= 1:
+                publish_metrics(test_id,response_times)
+                response_times = []
+                metrics_start = time.time()
+
             # doing this to take out the time taken for one respone
             # pray to god that delay > latency
-            time.sleep(int(delay)*1000-latency)
+            # also pray to god that delay << 1s
+            time.sleep((int(delay)-latency)/1000)
         publish_metrics(test_id,response_times)
 
     if test_type=='avalanche':

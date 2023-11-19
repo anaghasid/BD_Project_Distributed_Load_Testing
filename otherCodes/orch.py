@@ -7,6 +7,8 @@ import json
 from threading import Thread
 import time
 from flask_socketio import SocketIO
+import uuid
+import csv
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -18,7 +20,6 @@ load_test_commands_topic = "test_config"
 trigger_test_command_topic = "trigger"
 heartbeat_topic = "heartbeat"
 metrics_topic = "metrics"
-current_test_id = 0
 
 server_heartbeats = {}
 driver_information = []
@@ -30,9 +31,7 @@ def get_driver_info():
     consumer_conf = {
         'bootstrap_servers': "bd_project_distributed_load_testing-kafka_node-1:9092",
     }
-
     registration_consumer = KafkaConsumer(register_topic, bootstrap_servers='localhost:9092')
-
     try:
         driver_count = 2
         for message in registration_consumer:
@@ -72,8 +71,8 @@ def index():
 
 @app.route('/test_configure', methods=['POST'])
 def configure_test():
-    global current_test_id, current_test_configuration
-    current_test_id += 1
+    global current_test_configuration
+    current_test_id = uuid.uuid4()
 
     test_type = request.form.get('test_type')
     test_message_delay = request.form.get('test_message_delay')
@@ -83,15 +82,13 @@ def configure_test():
     req_per_driver = request.form.get("request_per_driver")
 
     current_test_configuration = {
-        "test_id": current_test_id,
+        "test_id": str(current_test_id),
         "test_type": test_type,
         "test_message_delay": test_message_delay,
         "message_count_per_driver": req_per_driver
     }
-
     if current_test_configuration:
         send_load_test_command(json.dumps(current_test_configuration), load_test_commands_topic)
-
     return render_template('index.html', message=f"Test configured with ID: {current_test_id}")
 
 
@@ -130,6 +127,18 @@ def check_server_heartbeats():
             if current_time - heartbeat_time > 0.1 and heartbeat_time != 0:
                 print(f"Server {server} is not responding!")
 
+def store_metric(metrics):
+    with open('dashboard.csv','a') as f:
+        node_id = metrics["node_id"]
+        test_id = metrics["test_id"]
+        report_id = metrics["report_id"]
+        num_requests = metrics["num_requests"]
+        mean = metrics["metrics"]["mean_latency"]
+        median = metrics["metrics"]["median_latency"]
+        min = metrics["metrics"]["min_latency"]
+        max = metrics["metrics"]["max_latency"]
+        csv_writer = csv.writer(f)
+        csv_writer.writerows([node_id,test_id,report_id,num_requests,mean,median,min,max])
 
 def metrics_consumer():
     consumer = KafkaConsumer(metrics_topic, bootstrap_servers='localhost:9092')
@@ -137,6 +146,7 @@ def metrics_consumer():
         for message in consumer:
             json_metric = json.loads(message.value.decode('utf-8'))
             print(json_metric)
+            store_metric(json_metric)
             print()
             socketio.emit('metric_update', json_metric)
     except KeyboardInterrupt:
