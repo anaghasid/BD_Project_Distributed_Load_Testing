@@ -4,7 +4,7 @@ body {
 }
 
 .grid-container {
-    height:100vh;
+    height: 100vh;
     width: 100vw;
     display: grid;
     grid-template-columns: 30vw 70vw; /* 30% for config, 70% for metrics */
@@ -85,3 +85,10 @@ th {
     background-color: #3498db;
     /* color: white; */
 }
+
+/* Additional Styles */
+
+/* Add your additional styles here */
+
+/* For example: */
+
