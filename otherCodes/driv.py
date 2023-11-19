@@ -63,6 +63,8 @@ def publish_metrics(test_id,responses):
     producer.flush()
 
 def perform_load_test(test_id, test_type, delay, total_req):
+    global response_times
+    response_times = []
     if test_type == 'tsunami':
         metrics_start = time.time()
         for i in range(int(total_req)):
@@ -75,7 +77,7 @@ def perform_load_test(test_id, test_type, delay, total_req):
 
 
             print("time passed=",time.time() - metrics_start)
-            if time.time() - metrics_start >= 1:
+            if time.time() - metrics_start >= 0.5:
                 publish_metrics(test_id,response_times)
                 response_times = []
                 metrics_start = time.time()
@@ -87,6 +89,7 @@ def perform_load_test(test_id, test_type, delay, total_req):
         publish_metrics(test_id,response_times)
 
     if test_type=='avalanche':
+        metrics_start = time.time()
         for i in range(int(total_req)):
             print("request number:", i)
             start = time.time()
@@ -94,6 +97,13 @@ def perform_load_test(test_id, test_type, delay, total_req):
             end = time.time()
             latency = float((end - start) * 1000)
             response_times.append(latency)
+
+            print("time passed=",time.time() - metrics_start)
+            if time.time() - metrics_start >= 0.5:          
+                publish_metrics(test_id,response_times)
+                response_times = []
+                metrics_start = time.time()
+
         publish_metrics(test_id,response_times)
 
 
@@ -133,7 +143,8 @@ def send_heartbeat(registration_info):
     heartbeat_interval = 0.04
     heartbeat_message = {
         "node_id": registration_info,
-        "heartbeat": "YES"
+        "heartbeat": "YES",
+        "timestamp": time.time()
     }
     try:
         while True:
