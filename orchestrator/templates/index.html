@@ -8,86 +8,7 @@
     <title>Test Configuration</title>
     <link rel="stylesheet" href="/static/styles/index.css">
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            max-width: 800px;
-            margin: 20px auto;
-        }
-
-        .config-container, .metrics-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        form {
-            margin-top: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        button {
-            background-color: #4caf50;
-            color: #fff;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #4caf50;
-            color: #fff;
-        }
-
-        #heartbeat_body {
-            font-size: 16px;
-        }
+        /* ... (your existing styles) ... */
     </style>
 </head>
 <body>
@@ -108,12 +29,12 @@
                 </select><br>
                 <label for="test_message_delay">Test Message Delay:</label>
                 <input type="text" id="test_message_delay" name="test_message_delay" required><br>
-		<label for="request_per_driver">Number of requests</label>
-                <input type="int" id="request_per_driver" name="request_per_driver" required><br>
+                <label for="request_per_driver">Number of requests:</label>
+                <input type="number" id="request_per_driver" name="request_per_driver" required><br>
                 <button type="submit">Done</button>
             </form>
-            <form action="/trigger_test" method="get">
-                <button type="submit">Trigger Test</button>
+            <form action="/trigger_test" method="get" id="trigger-form">
+                <button type="submit" id="trigger-button" onclick="triggerTest()">Trigger Test</button>
             </form>
         </div>
         <div class="metrics-container">
@@ -136,9 +57,20 @@
     <script>
         var socket = io.connect('http://' + document.domain + ':' + location.port);
 
+        // Function to disable the button and prevent multiple clicks
+        function triggerTest() {
+            var triggerButton = document.getElementById('trigger-button');
+            triggerButton.disabled = true;
+
+            
+            setTimeout(function() {
+                // Re-enable the button after the test is complete
+                triggerButton.disabled = false;
+            }, 5000);  
+        }
+
         // Event listener for receiving Kafka heartbeat messages
         socket.on('update_server_heartbeats', function (heartbeats) {
-
             var heartbeatBody = document.getElementById('heartbeat_body');
             heartbeatBody.innerHTML = ''; // Clear existing entries
 
@@ -152,7 +84,7 @@
                 cell2.innerHTML = heartbeat;
             }
         });
-
     </script>
 </body>
 </html>
+
