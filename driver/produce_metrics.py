@@ -3,6 +3,7 @@ import uuid
 import time
 import json
 import requests
+import socket
 
 consumer_conf = {
         'bootstrap_servers': "bd_project_distributed_load_testing-kafka_node-1:9092",
@@ -78,13 +79,14 @@ def perform_load_test(node_info,test_id, test_type, delay, total_req):
                 response_times = []
                 metrics_start = time.time()
 
-        publish_metrics(test_id,response_times)
+        publish_metrics(node_info,test_id,response_times)
 
 
 def consume_commands(node_info):
     global consumer_config,topic_config,topic_trig
     print("in")
-    consumer = KafkaConsumer("test_config", "trigger",bootstrap_servers='bd_project_distributed_load_testing-kafka_node-1:9092')
+    consumer = KafkaConsumer("test_config", "trigger",bootstrap_servers='bd_project_distributed_load_testing-kafka_node-1:9092',
+                             group_id=socket.gethostname())
     # consumer.subscribe([topic_config, topic_trig])
     print(consumer)
     try:

@@ -55,7 +55,7 @@ def send_load_test_command(command_data, topic):
     producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
     command_data = command_data.encode('utf-8')
     print(f"Sending load test command: {command_data} to topic: {topic}")
-    producer.send(topic, key=None, value=command_data)
+    producer.send(topic,value=command_data)
     producer.flush()
 
 
