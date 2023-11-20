@@ -24,7 +24,7 @@ topic_heartbeat = "heartbeat"
 topic_metrics = "metrics"
 
 target_url = "http://localhost:5002/test_endpoint"
-
+response_times = []
 
 def register_with_kafka():
     registration_producer = KafkaProducer(bootstrap_servers='localhost:9092')
@@ -95,11 +95,11 @@ def perform_load_test(test_id, test_type, delay, total_req):
             start = time.time()
             response = requests.get(target_url)
             end = time.time()
-            latency = float((end - start) * 1000)
+            latency = float((end - start))
             response_times.append(latency)
 
             print("time passed=",time.time() - metrics_start)
-            if time.time() - metrics_start >= 0.5:          
+            if time.time() - metrics_start >= 0.5:
                 publish_metrics(test_id,response_times)
                 response_times = []
                 metrics_start = time.time()
@@ -143,8 +143,7 @@ def send_heartbeat(registration_info):
     heartbeat_interval = 0.04
     heartbeat_message = {
         "node_id": registration_info,
-        "heartbeat": "YES",
-        "timestamp": time.time()
+        "heartbeat": "YES"
     }
     try:
         while True:
@@ -162,10 +161,10 @@ kafka_consumer_thread.start()
 heartbeat_checker_thread = Thread(target=send_heartbeat, args=(node_info["node_id"],))
 heartbeat_checker_thread.start()
 
-
 @app.route("/")
 def hello_world():
     return "<p>Hello, World, Drivers</p>"
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5003)
+    port_ = int(input("Enter port number"))
+    app.run(debug=False, port=port_)
