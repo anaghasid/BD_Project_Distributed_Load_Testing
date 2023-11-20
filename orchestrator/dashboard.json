@@ -1,3 +1,22 @@
 [
-  "[{\"mean_Latency\":0.006694471,\"min_Latency\":0.0047178268,\"max_Latency\":0.0114431381,\"median_latency\":0.0061438084,\"number_of_request\":150.0}]"
+    {
+        "node_id": "8337f7529391",
+        "test_id": "627e0a64-040b-45fa-afd3-f59eb358d9ae",
+        "report_id": "b0d0d49b-d712-4475-a43b-280a40d2507a",
+        "num_requests": 71,
+        "mean_latency": 0.0059073978746441045,
+        "median_latency": 0.004944801330566406,
+        "min_latency": 0.002749919891357422,
+        "max_latency": 0.027161121368408203
+    },
+    {
+        "node_id": "7af626cab92c",
+        "test_id": "2e4bf2e9-7e6e-4e52-b3c4-f9ac48ead278",
+        "report_id": "cba61b0d-460f-4fa4-8eca-1d5ff1ee1c4e",
+        "num_requests": 69,
+        "mean_latency": 0.006044726440871971,
+        "median_latency": 0.005586862564086914,
+        "min_latency": 0.002495288848876953,
+        "max_latency": 0.02500772476196289
+    }
 ]

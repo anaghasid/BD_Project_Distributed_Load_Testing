@@ -1,0 +1,34 @@
+{
+    "node_id": "a497dbac1ac1",
+    "test_id": "627e0a64-040b-45fa-afd3-f59eb358d9ae",
+    "report_id": "391a03b5-d6b7-4da3-8373-d75b7358f2d5",
+    "num_requests": 72,
+    "metrics": {
+        "mean_latency": 0.005947821670108371,
+        "median_latency": 0.005017995834350586,
+        "min_latency": 0.0026502609252929688,
+        "max_latency": 0.02734231948852539
+    }
+}{
+    "node_id": "a497dbac1ac1",
+    "test_id": "627e0a64-040b-45fa-afd3-f59eb358d9ae",
+    "report_id": "0707f33c-5137-49f7-be02-1a2fb6ead7f2",
+    "num_requests": 86,
+    "metrics": {
+        "mean_latency": 0.004656869311665379,
+        "median_latency": 0.004113197326660156,
+        "min_latency": 0.002404928207397461,
+        "max_latency": 0.012224912643432617
+    }
+}{
+    "node_id": "a497dbac1ac1",
+    "test_id": "627e0a64-040b-45fa-afd3-f59eb358d9ae",
+    "report_id": "de6790c1-e1c8-43a3-8744-3a54b68b52b8",
+    "num_requests": 42,
+    "metrics": {
+        "mean_latency": 0.004334188642955962,
+        "median_latency": 0.0038747787475585938,
+        "min_latency": 0.002697467803955078,
+        "max_latency": 0.007704734802246094
+    }
+}
