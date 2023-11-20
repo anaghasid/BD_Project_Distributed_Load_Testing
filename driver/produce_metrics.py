@@ -56,7 +56,7 @@ def perform_load_test(node_info,test_id, test_type, delay, total_req):
                 response_times = []
                 metrics_start = time.time()
 
-            # doing this to take out the time taken for one respone
+            # doing this to take out the time taken for one response
             # pray to god that delay > latency
             # also pray to god that delay << 1s
             time.sleep((int(delay)-latency)/1000)
@@ -74,7 +74,7 @@ def perform_load_test(node_info,test_id, test_type, delay, total_req):
 
             print("time passed=",time.time() - metrics_start)
             if time.time() - metrics_start >= 0.5:          
-                publish_metrics(test_id,response_times)
+                publish_metrics(node_info,test_id,response_times)
                 response_times = []
                 metrics_start = time.time()
 

@@ -45,7 +45,7 @@ heartbeat_thread = Thread(target=initialize_heartbeat_consumer, args=(server_hea
 heartbeat_thread.start()
 # heartbeat_check = Thread(target=initiliaze_heartbeat_checker,args=(server_heartbeats,socketio))
 metrics_consumer_thread = Thread(target=initialize_metrics_consumer,args=(socketio,))
-# metrics_consumer_thread.start()
+metrics_consumer_thread.start()
 
 @app.route("/")
 def index():
@@ -95,7 +95,6 @@ def trigger_test():
     }
     
     # heartbeat_thread.start()
-    metrics_consumer_thread.start()
 
     print(f"sent test command {trigger_message}, {trigger_test_command_topic}")
     send_load_test_command(json.dumps(trigger_message), trigger_test_command_topic)

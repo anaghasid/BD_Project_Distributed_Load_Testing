@@ -64,7 +64,7 @@ services:
       context: ./driver
       dockerfile: Dockerfile  
     image: driver-node:5.0
-    command: flask run --host=0.0.0.0 --port=5000 --debug
+    command: flask run --host=0.0.0.0 --port=5000 
     networks:
       - my-network
     volumes:
