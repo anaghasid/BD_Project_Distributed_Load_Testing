@@ -4,21 +4,21 @@ import time
 import csv
 import os
 import pandas as pd
-
+import socket
 
 metrics_consumer_conf = {'bootstrap_servers': 'bd_project_distributed_load_testing-kafka_node-1:9092'}
 metrics_topic = 'metrics'
 
 def weighted_metrics(df):
-    test_id = df["test_id"]
+    print(df)
+    
     # Aggregate metrics
-    total_requests = df['number_of_requests'].sum()
-    latency_mean = (df['mean_latency'] * df['number_of_requests']).sum() / total_requests
+    total_requests = df['num_requests'].sum()
+    latency_mean = (df['mean_latency'] * df['num_requests']).sum() / total_requests
     latency_min = (df['min_latency']).min()
     latency_median = (df['median_latency']).median()
     latency_max = (df['max_latency']).max() 
     return pd.Series({
-        'test_id': test_id,
         'mean_Latency': latency_mean,
         'min_Latency': latency_min,
         'max_Latency': latency_max,
@@ -34,19 +34,36 @@ def aggregated_driver(socketio):
     df = pd.DataFrame(existing_data)
     aggregated_driver = df.groupby(['test_id','node_id']).apply(weighted_metrics).reset_index()
 
+    with open('dashboard.json', 'r') as json_file:
+        data = json.load(json_file)
 
-    with open('agg_driver','a') as file:
-        csv_writer = csv.writer(file)
-        csv_writer.writerows([aggregated_driver])
+# Remove the string part and create DataFrame
+    df = pd.DataFrame(data[1:])
+
+    # print(df['test_id'][1:])
+    aggregated_driver = df.groupby(['test_id','node_id']).apply(weighted_metrics)
+    agg_driver = aggregated_driver.to_json(orient="records")
+    print(aggregated_driver)
+
+    try:
+        with open("aggregated.json", "r") as json_file:
+            existing_daxta = json.load(json_file)
+    except FileNotFoundError:
+        existing_data = []
+
+    existing_data.append(agg_driver)
+
+    with open("dashboard.json", "w") as json_file:
+        json.dump(existing_data, json_file, indent=2)
     
     total_aggregate = df.groupby('test_id').apply(weighted_metrics)
-
-    socketio.emit('driver_aggregate',aggregated_driver)
-    socketio.emit('total_aggregate',total_aggregate)
+    total_agg_json = total_aggregate.to_json(orient="records")
+    socketio.emit('driver_aggregate',agg_driver)
+    socketio.emit('total_aggregate',total_agg_json)
 
 
 def store_metric(metrics,socketio):
-    print("hi in metrics store")
+    # print("hi in metrics store")
     node_id = metrics["node_id"]
     test_id = metrics["test_id"]
     report_id = metrics["report_id"]
@@ -61,8 +78,8 @@ def store_metric(metrics,socketio):
     "test_id": test_id,
     "report_id": report_id,
     "num_requests": num_requests,
-    "mean": mean,
-    "median": median,
+    "mean_latency": mean,
+    "median_latency": median,
     "min_latency": mini,
     "max_latency": maxi,
     }
@@ -82,20 +99,32 @@ def store_metric(metrics,socketio):
     with open("dashboard.json", "w") as json_file:
         json.dump(metrics_data, json_file, indent=4)
 
+    # If the existing data is a string, parse it into a list
+    if isinstance(existing_data, str):
+        existing_data = json.loads(existing_data)
+
+    # Append new metrics data
+    existing_data.append(metrics_data)
+
+    # Write back to the file
+    with open(file_path, "w") as json_file:
+        json.dump(existing_data, json_file, indent=4)
 
 def metrics_consumer(socketio):
     consumer = KafkaConsumer("metrics",**metrics_consumer_conf)
+    print(f"metrics consumer in {socket.gethostname()} is now active")
     try:
         st = time.time()
         for message in consumer:
             json_metric = json.loads(message.value.decode('utf-8'))
-            print(json_metric,"in metrics_consumer")
+            # print(json_metric,"in metrics_consumer")
             store_metric(json_metric,socketio)
-            print("here")
+            print(socket)
             if time.time() - st >=1:
                 aggregated_driver(socketio)
                 st = time.time()
             
+            print(json_metric)
             socketio.emit('metric_update', json_metric)
 
     except KeyboardInterrupt:
