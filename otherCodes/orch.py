@@ -10,7 +10,7 @@ from flask_socketio import SocketIO
 import uuid
 import csv
 import pandas as pd
-
+import os
 app = Flask(__name__)
 socketio = SocketIO(app)
 
@@ -103,6 +103,12 @@ def trigger_test():
         "test_id": current_test_configuration["test_id"],
         "trigger": "YES"
     }
+    kafka_consumer_thread = Thread(target=heart_beat_consumer)
+    kafka_consumer_thread.start()
+
+    heartbeat_checker_thread = Thread(target=check_server_heartbeats)
+    heartbeat_checker_thread.start()
+
     send_load_test_command(json.dumps(trigger_message), trigger_test_command_topic)
 
     return render_template('index.html', message="Test triggered successfully")
@@ -150,26 +156,25 @@ def weighted_metrics(df):
 
     # print(driver_aggregate)
 
-    return aggregate_metrics
 def aggregated_driver():
     df = pd.read_csv('dashboard.csv')
    
-    aggregated_driver = df.groupby(['node_id','test_id']).apply(weighted_metrics).reset_index()
+    aggregated_driver = df.groupby(['test_id','node_id']).apply(weighted_metrics).reset_index()
+
+
     with open('agg_driver','a') as file:
         csv_writer = csv.writer(file)
         csv_writer.writerows([aggregated_driver])
     
-    total_aggregate = df.apply(weighted_metrics)
+    total_aggregate = df.groupby('test_id').apply(weighted_metrics)
 
     socketio.emit('driver_aggregate',aggregated_driver)
     socketio.emit('total_aggregate',total_aggregate)
 
 
-    
-
-
-
 def store_metric(metrics):
+    is_new_file = os.path.exists('dashboard.csv')
+
     with open('dashboard.csv','a') as f:
         node_id = metrics["node_id"]
         test_id = metrics["test_id"]
@@ -180,6 +185,9 @@ def store_metric(metrics):
         mini = metrics["metrics"]["min_latency"]
         maxi = metrics["metrics"]["max_latency"]
         csv_writer = csv.writer(f)
+        if is_new_file:
+            # Add headers if the file is new
+            csv_writer.writerow(["node_id", "test_id", "num_requests", "mean_latency", "median_latency", "min_latency", "max_latency"])
         csv_writer.writerow([node_id,test_id,report_id,num_requests,mean,median,mini,maxi])
 
 def metrics_consumer():
@@ -191,7 +199,7 @@ def metrics_consumer():
             print(json_metric)
             store_metric(json_metric)
             print()
-            if time.time() - st >=2:
+            if time.time() - st >=1:
                 aggregated_driver()
                 st = time.time()
             
@@ -204,11 +212,7 @@ def metrics_consumer():
 
 
 get_driver_info()
-kafka_consumer_thread = Thread(target=heart_beat_consumer)
-kafka_consumer_thread.start()
 
-heartbeat_checker_thread = Thread(target=check_server_heartbeats)
-heartbeat_checker_thread.start()
 
 metrics_consumer_thread = Thread(target=metrics_consumer)
 metrics_consumer_thread.start()
