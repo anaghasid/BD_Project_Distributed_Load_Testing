@@ -51,12 +51,26 @@
                         <th>node_id</th>
                         <th>num_requests</th>
                         <th>mean_latency</th> 
-                        <th> median_latency</th> 
+                        <th>median_latency</th> 
                         <th>min_latency</th>  
                         <th>max_latency</th>
                     </tr>
                 </thead>
                 <tbody id="metric_body"></tbody>        
+            </table>
+
+            <!-- New table with id, aggregate, and body -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>node_id</th>
+                        <th>mean_latency</th> 
+                        <th>median_latency</th> 
+                        <th>min_latency</th>  
+                        <th>max_latency</th>
+                    </tr>
+                </thead>
+                <tbody id="aggregate_body"></tbody>
             </table>
         </div>
     </div>
@@ -66,82 +80,106 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
     <!-- ... (previous HTML code) ... -->
 
-<script>
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
-    var isTestRunning = false; // Variable to track the test status
+    <script>
+        // Your existing JavaScript code remains unchanged
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var isTestRunning = false; // Variable to track the test status
 
-    // Function to disable the button and prevent multiple clicks
-    function triggerTest() {
-        var triggerButton = document.getElementById('trigger-button');
+        // Function to disable the button and prevent multiple clicks
+        function triggerTest() {
+            var triggerButton = document.getElementById('trigger-button');
 
-        // Check if the test is already running
-        if (isTestRunning) {
-            alert("Test is already running. Please wait for it to complete.");
-            return;
+            // Check if the test is already running
+            if (isTestRunning) {
+                alert("Test is already running. Please wait for it to complete.");
+                return;
+            }
+
+            triggerButton.disabled = true;
+            isTestRunning = true;
+
+            // Simulate the test duration (replace this with your actual test logic)
+            setTimeout(function () {
+                // Re-enable the button after the test is complete
+                triggerButton.disabled = false;
+                isTestRunning = false;
+            }, 5000);
         }
 
-        triggerButton.disabled = true;
-        isTestRunning = true;
+        // Event listener for receiving Kafka heartbeat messages
+        socket.on('update_server_heartbeats', function (heartbeats) {
+            var heartbeatBody = document.getElementById('heartbeat_body');
+            heartbeatBody.innerHTML = ''; // Clear existing entries
 
-        // Simulate the test duration (replace this with your actual test logic)
-        setTimeout(function () {
-            // Re-enable the button after the test is complete
-            triggerButton.disabled = false;
-            isTestRunning = false;
-        }, 5000);
-    }
+            // Iterate through the heartbeats and add rows to the table
+            for (var nodeId in heartbeats) {
+                var heartbeat = heartbeats[nodeId];
+                var row = heartbeatBody.insertRow();
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+                cell1.innerHTML = nodeId;
+                cell2.innerHTML = heartbeat;
+            }
+        });
 
-    // Event listener for receiving Kafka heartbeat messages
-    socket.on('update_server_heartbeats', function (heartbeats) {
-        var heartbeatBody = document.getElementById('heartbeat_body');
-        heartbeatBody.innerHTML = ''; // Clear existing entries
+        socket.on('metric_update', function (json_metric) {
+            var metricBody = document.getElementById('metric_body');
+            // metricBody.innerHTML = ''; // Clear existing entries
+            console.log("here", json_metric);
 
-        // Iterate through the heartbeats and add rows to the table
-        for (var nodeId in heartbeats) {
-            var heartbeat = heartbeats[nodeId];
-            var row = heartbeatBody.insertRow();
+            var node_id = json_metric['node_id'];
+            var num_requests = json_metric['num_requests'];
+            var mean_latency = json_metric['metrics']['mean_latency'];
+            var median_latency = json_metric['metrics']['median_latency'];
+            var min_latency = json_metric['metrics']['min_latency'];
+            var max_latency = json_metric['metrics']['max_latency'];
+
+            var row = metricBody.insertRow(); // Changed from 'heartbeatBody' to 'metricBody'
+
             var cell1 = row.insertCell(0);
             var cell2 = row.insertCell(1);
-            cell1.innerHTML = nodeId;
-            cell2.innerHTML = heartbeat;
-        }
-    });
+            var cell3 = row.insertCell(2);
+            var cell4 = row.insertCell(3);
+            var cell5 = row.insertCell(4);
+            var cell6 = row.insertCell(5);
 
-    socket.on('metric_update', function (json_metric) {
-    var metricBody = document.getElementById('metric_body');
-    // metricBody.innerHTML = ''; // Clear existing entries
-    console.log("here", json_metric);
+            cell1.innerHTML = node_id;
+            cell2.innerHTML = num_requests;
+            cell3.innerHTML = mean_latency;
+            cell4.innerHTML = median_latency;
+            cell5.innerHTML = min_latency;
+            cell6.innerHTML = max_latency;
 
-    var node_id = json_metric['node_id'];
-    var num_requests = json_metric['num_requests'];
-    var mean_latency = json_metric['metrics']['mean_latency'];
-    var median_latency = json_metric['metrics']['median_latency'];
-    var min_latency = json_metric['metrics']['min_latency'];
-    var max_latency = json_metric['metrics']['max_latency'];
+            metricBody.appendChild(row);
+        });
 
-    var row = metricBody.insertRow(); // Changed from 'heartbeatBody' to 'metricBody'
+        // Additional code for the new table
+        socket.on('aggregate_update', function (data) {
+            var aggregateBody = document.getElementById('aggregate_body');
 
-    var cell1 = row.insertCell(0);
-    var cell2 = row.insertCell(1);
-    var cell3 = row.insertCell(2);
-    var cell4 = row.insertCell(3);
-    var cell5 = row.insertCell(4);
-    var cell6 = row.insertCell(5);
+            var node_id = data['node_id'];
+            var mean_latency = data['metrics']['mean_latency'];
+            var median_latency = data['metrics']['median_latency'];
+            var min_latency = data['metrics']['min_latency'];
+            var max_latency = data['metrics']['max_latency'];
+            
+            var rows = aggregateBody.insertRow();
+            // Iterate through the data and add rows to the new table
+            var cells1 = rows.insertCell(0);
+            var cells2 = rows.insertCell(1);
+            var cells3 = rows.insertCell(2);
+            var cells4 = rows.insertCell(3);
+            var cells5 = rows.insertCell(4);
+           
+            cells1.innerHTML = node_id;
+            cells2.innerHTML = mean_latency;
+            cells3.innerHTML = median_latency;
+            cells4.innerHTML = min_latency;
+            cells5.innerHTML = max_latency;
 
-    cell1.innerHTML = node_id;
-    cell2.innerHTML = num_requests;
-    cell3.innerHTML = mean_latency;
-    cell4.innerHTML = median_latency;
-    cell5.innerHTML = min_latency;
-    cell6.innerHTML = max_latency;
-
-    metricBody.appendChild(row);
-});
-
-</script>
-</body>
-</html>
-
+            aggregateBody.appendChild(rows);
+        });
+    </script>
 </body>
 </html>
 
