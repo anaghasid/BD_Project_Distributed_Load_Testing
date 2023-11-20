@@ -27,8 +27,11 @@ def weighted_metrics(df):
     })
 
 def aggregated_driver(socketio):
-    df = pd.read_json('dashboard.json',orient="index")
-    print(df)
+    with open("dashboard.json", "r") as json_file:
+        existing_data = json.load(json_file)
+
+# Convert the list of dictionaries to a DataFrame
+    df = pd.DataFrame(existing_data)
     aggregated_driver = df.groupby(['test_id','node_id']).apply(weighted_metrics).reset_index()
 
 
@@ -66,8 +69,18 @@ def store_metric(metrics,socketio):
     print(metrics_data,"is here")
 
     # Dump the JSON object to a file
-    with open("dashboard.json", "a") as json_file:   
-        json.dump(metrics_data, json_file,indent=4)
+    try:
+        with open("dashboard.json", "r") as json_file:
+            existing_data = json.load(json_file)
+    except FileNotFoundError:
+        existing_data = []
+
+# Append new data to the existing data
+    existing_data.append(metrics_data)
+
+# Dump the updated data back to the file
+    with open("dashboard.json", "w") as json_file:
+        json.dump(metrics_data, json_file, indent=4)
 
 
 def metrics_consumer(socketio):
