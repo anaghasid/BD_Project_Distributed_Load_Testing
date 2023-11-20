@@ -34,7 +34,7 @@ def publish_metrics(node_info,test_id,responses):
 
 def perform_load_test(node_info,test_id, test_type, delay, total_req):
     global topic_metrics
-    target_url = 'http://localhost:5003:/metrics'
+    target_url = "http://localhost:5002/test_endpoint"
     response_times = []
     if test_type == 'tsunami':
         metrics_start = time.time()
