@@ -33,5 +33,10 @@ register_with_kafka()
 def hello_world():
     return "<p>Hello, World from target server</p>"
 
+@app.route("/test_endpoint")
+def get_message():
+    # data = json.loads({"message": "hiiiii this is a message from the target server"})
+    return {"message": "hiiiii this is a message from the target server"}
+
 if __name__ == "__main__":
     app.run(debug=True)

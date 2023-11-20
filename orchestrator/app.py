@@ -6,6 +6,7 @@ from threading import Thread
 import time
 from flask_socketio import SocketIO
 import time
+import uuid
 from registration_consumer import initialize_registration_consumer
 from heartbeat_consumer import initialize_heartbeat_consumer
 import pandas as pd
@@ -31,7 +32,7 @@ metrics_topic = "metrics"
 # producer = KafkaProducer(**producer_config)
 
 # server_heartbeats = {}
-
+# current_test_configuration={}
 
 driver_information={}
 # initialize_registration_consumer(driver_information)
@@ -44,17 +45,62 @@ heartbeat_thread = Thread(target=initialize_heartbeat_consumer, args=(server_hea
 heartbeat_thread.start()
 # heartbeat_check = Thread(target=initiliaze_heartbeat_checker,args=(server_heartbeats,socketio))
 metrics_consumer_thread = Thread(target=initialize_metrics_consumer,args=(socketio,))
-metrics_consumer_thread.start()
-
-
-
-@app.route("/driver_info")
-def get_registration_info():
-    return render_template("driver_info.html", driver_info_list=driver_information)
+# metrics_consumer_thread.start()
 
 @app.route("/")
 def index():
     return render_template("index.html",server_heartbeats=server_heartbeats,socketio=socketio)
+
+def send_load_test_command(command_data, topic):
+    producer = KafkaProducer(bootstrap_servers="bd_project_distributed_load_testing-kafka_node-1:9092")
+    command_data = command_data.encode('utf-8')
+    print(f"Sending load test command: {command_data} to topic: {topic}")
+    producer.send(topic, key=None, value=command_data)
+    producer.flush()
+
+
+@app.route('/test_configure', methods=['POST'])
+def configure_test():
+    global current_test_configuration
+    current_test_id = uuid.uuid4()
+
+    test_type = request.form.get('test_type')
+    test_message_delay = request.form.get('test_message_delay')
+    if test_type == "AVALANCHE":
+        test_message_delay = 0
+
+    req_per_driver = request.form.get("request_per_driver")
+
+    current_test_configuration = {
+        "test_id": str(current_test_id),
+        "test_type": test_type,
+        "test_message_delay": test_message_delay,
+        "message_count_per_driver": req_per_driver
+    }
+    if current_test_configuration:
+        send_load_test_command(json.dumps(current_test_configuration), load_test_commands_topic)
+    return render_template('index.html', message=f"Test configured with ID: {current_test_id}")
+
+
+@app.route('/trigger_test')
+def trigger_test():
+    print("hi")
+    global current_test_configuration
+    if not current_test_configuration:
+        return render_template('index.html', error="Test configuration is not set. Please configure a test first.")
+    print("bye")
+    trigger_message = {
+        "test_id": current_test_configuration["test_id"],
+        "trigger": "YES"
+    }
+    
+    # heartbeat_thread.start()
+    metrics_consumer_thread.start()
+
+    print(f"sent test command {trigger_message}, {trigger_test_command_topic}")
+    send_load_test_command(json.dumps(trigger_message), trigger_test_command_topic)
+
+    return render_template('index.html', message="Test triggered successfully")
 
 if __name__ == "__main__":
     app.run(debug=True)

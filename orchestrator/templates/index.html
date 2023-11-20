@@ -31,7 +31,7 @@
                 <button type="submit">Done</button>
             </form>
             <form action="/trigger_test" method="get" id="trigger-form">
-                <button type="submit" id="trigger-button" onclick="triggerTest()">Trigger Test</button>
+                <button type="submit" id="trigger-button" >Trigger Test</button>
             </form>
         </div>
         <div class="metrics-container">
@@ -44,6 +44,19 @@
                     </tr>
                 </thead>
                 <tbody id="heartbeat_body"></tbody>        
+            </table>
+            <table>
+                <thead>
+                    <tr>
+                        <th>node_id</th>
+                        <th>num_requests</th>
+                        <th>mean_latency</th> 
+                        <th> median_latency</th> 
+                        <th>min_latency</th>  
+                        <th>max_latency</th>
+                    </tr>
+                </thead>
+                <tbody id="metric_body"></tbody>        
             </table>
         </div>
     </div>
@@ -93,6 +106,38 @@
             cell2.innerHTML = heartbeat;
         }
     });
+
+    socket.on('metric_update', function (json_metric) {
+    var metricBody = document.getElementById('metric_body');
+    // metricBody.innerHTML = ''; // Clear existing entries
+    console.log("here", json_metric);
+
+    var node_id = json_metric['node_id'];
+    var num_requests = json_metric['num_requests'];
+    var mean_latency = json_metric['metrics']['mean_latency'];
+    var median_latency = json_metric['metrics']['median_latency'];
+    var min_latency = json_metric['metrics']['min_latency'];
+    var max_latency = json_metric['metrics']['max_latency'];
+
+    var row = metricBody.insertRow(); // Changed from 'heartbeatBody' to 'metricBody'
+
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    var cell3 = row.insertCell(2);
+    var cell4 = row.insertCell(3);
+    var cell5 = row.insertCell(4);
+    var cell6 = row.insertCell(5);
+
+    cell1.innerHTML = node_id;
+    cell2.innerHTML = num_requests;
+    cell3.innerHTML = mean_latency;
+    cell4.innerHTML = median_latency;
+    cell5.innerHTML = min_latency;
+    cell6.innerHTML = max_latency;
+
+    metricBody.appendChild(row);
+});
+
 </script>
 </body>
 </html>

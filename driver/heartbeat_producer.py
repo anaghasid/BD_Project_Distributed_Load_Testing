@@ -14,7 +14,6 @@ def produce_heartbeats():
     heartbeat_interval = 0.5
     hostname = socket.gethostname()
 
-    count=0
     heartbeat_message = {
         "node_id": hostname,
         "heartbeat": "YES",
@@ -27,8 +26,6 @@ def produce_heartbeats():
             time.sleep(heartbeat_interval)
             heartbeat_producer.send(heartbeat_topic, value=heartbeat_message.encode('utf-8'))
             heartbeat_producer.flush()  # Ensure the message is sent immediately
-            if(count<50): print("heartbeat sent")
-            count+=1
     except KeyboardInterrupt:
         pass
 

@@ -15,14 +15,6 @@ def get_heartbeats(server_heartbeats,socketio):
         heartbeat_consumer=get_heartbeat_consumer()
         for message in heartbeat_consumer:
             msg=message.value.decode('utf-8')
-            # if msg is None:
-            #     continue
-            # if msg.error():
-            #     break
-            # Update server heartbeat in the list
-            if(count<50): 
-                print("received heartbeat")
-                count+=1
             json_beat = json.loads(msg)
             server_heartbeats[json_beat.get("node_id")] = time.time()
             socketio.emit('update_server_heartbeats', server_heartbeats, namespace='/')
