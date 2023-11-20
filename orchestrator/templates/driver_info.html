@@ -1,20 +1,37 @@
+<!-- templates/driver_info.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Information</title>
+    <link rel="stylesheet" href="/static/styles/driver_info.css">
 </head>
 <body>
     <h1>Node Information</h1>
-    <ul>
-        {% for driver_info in driver_info_list %}
-            <li>
-                <strong>IP Address:</strong> {{ driver_info.node_IP }}<br>
-                <strong>Node ID:</strong> {{ driver_info.node_ID }}<br>
-                <strong>Message Type:</strong> {{ driver_info.message_type }}
-            </li>
-        {% endfor %}
-    </ul>
+    <div class="registration-container" id="registration-container">
+        <h1 id="waiting-message"> Waiting for driver node info......</h1>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <script>
+        var registrationContainer = document.getElementById('registration-container');
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var waitingMessage = document.getElementById('waiting-message');
+
+        socket.on('register_driver', function (registration_information) {
+            var driverCard = document.createElement('div');
+            driverCard.classList.add('driver-card');
+            driverCard.innerHTML = `
+                <strong>Node ID:</strong> ${registration_information.node_ID}<br>
+                <strong>Node IP:</strong> ${registration_information.node_IP}<br>
+                <strong>Message_Type:</strong> ${registration_information.message_type}<br>
+            `;
+            registrationContainer.appendChild(driverCard);
+            waitingMessage.style.display = 'none';
+        });
+    </script>
+
 </body>
 </html>

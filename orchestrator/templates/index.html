@@ -6,18 +6,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Configuration</title>
-    <link rel="stylesheet" href="/static/styles/index.css">
-    <style>
-        /* ... (your existing styles) ... */
-    </style>
+    <link rel="stylesheet" href="../static/styles/index.css">
 </head>
 <body>
-    {% if error %}
+    <!--{% if error %}
         <p style="color: red;">{{ error }}</p>
     {% endif %}
     {% if message %}
         <p style="color: green;">{{ message }}</p>
-    {% endif %}
+    {% endif %}-->
     <div class="grid-container">
         <div class="config-container">
             <h1>Test Configurations</h1>
@@ -54,37 +51,53 @@
     <!-- <ul id="kafka-messages"></ul> -->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
-    <script>
-        var socket = io.connect('http://' + document.domain + ':' + location.port);
+    <!-- ... (previous HTML code) ... -->
 
-        // Function to disable the button and prevent multiple clicks
-        function triggerTest() {
-            var triggerButton = document.getElementById('trigger-button');
-            triggerButton.disabled = true;
+<script>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var isTestRunning = false; // Variable to track the test status
 
-            
-            setTimeout(function() {
-                // Re-enable the button after the test is complete
-                triggerButton.disabled = false;
-            }, 5000);  
+    // Function to disable the button and prevent multiple clicks
+    function triggerTest() {
+        var triggerButton = document.getElementById('trigger-button');
+
+        // Check if the test is already running
+        if (isTestRunning) {
+            alert("Test is already running. Please wait for it to complete.");
+            return;
         }
 
-        // Event listener for receiving Kafka heartbeat messages
-        socket.on('update_server_heartbeats', function (heartbeats) {
-            var heartbeatBody = document.getElementById('heartbeat_body');
-            heartbeatBody.innerHTML = ''; // Clear existing entries
+        triggerButton.disabled = true;
+        isTestRunning = true;
 
-            // Iterate through the heartbeats and add rows to the table
-            for (var nodeId in heartbeats) {
-                var heartbeat = heartbeats[nodeId];
-                var row = heartbeatBody.insertRow();
-                var cell1 = row.insertCell(0);
-                var cell2 = row.insertCell(1);
-                cell1.innerHTML = nodeId;
-                cell2.innerHTML = heartbeat;
-            }
-        });
-    </script>
+        // Simulate the test duration (replace this with your actual test logic)
+        setTimeout(function () {
+            // Re-enable the button after the test is complete
+            triggerButton.disabled = false;
+            isTestRunning = false;
+        }, 5000);
+    }
+
+    // Event listener for receiving Kafka heartbeat messages
+    socket.on('update_server_heartbeats', function (heartbeats) {
+        var heartbeatBody = document.getElementById('heartbeat_body');
+        heartbeatBody.innerHTML = ''; // Clear existing entries
+
+        // Iterate through the heartbeats and add rows to the table
+        for (var nodeId in heartbeats) {
+            var heartbeat = heartbeats[nodeId];
+            var row = heartbeatBody.insertRow();
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            cell1.innerHTML = nodeId;
+            cell2.innerHTML = heartbeat;
+        }
+    });
+</script>
 </body>
 </html>
+
+</body>
+</html>
+
 

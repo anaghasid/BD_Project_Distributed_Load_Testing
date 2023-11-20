@@ -152,10 +152,13 @@ def weighted_metrics(df):
         'number_of_request':total_requests
     })
 
+<<<<<<< HEAD
     # Group by 'node_id' and calculate the weighted metrics
 
     # print(driver_aggregate)
 
+=======
+>>>>>>> 3b246fbd6fc86bd93f5ea07d0487f70b6050d2c5
 def aggregated_driver():
     df = pd.read_csv('dashboard.csv')
    

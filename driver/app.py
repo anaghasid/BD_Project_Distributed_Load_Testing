@@ -5,7 +5,10 @@ from kafka import KafkaProducer
 import socket,json,time
 from heartbeat_producer import heartbeat_producer
 from threading import Thread
+import pandas as pd
+
 app = Flask(__name__)
+
 
 def register_with_kafka():
     time.sleep(15) #give some time for kafka to start up completely

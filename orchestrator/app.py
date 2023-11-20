@@ -1,5 +1,3 @@
-#orchestrator app.py
-
 from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 from kafka import KafkaProducer,KafkaConsumer
@@ -10,6 +8,7 @@ from flask_socketio import SocketIO
 import time
 from registration_consumer import initialize_registration_consumer
 from heartbeat_consumer import initialize_heartbeat_consumer
+import pandas as pd
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -33,8 +32,11 @@ metrics_topic = "metrics"
 # server_heartbeats = {}
 
 
-driver_information=[]
-initialize_registration_consumer(driver_information)
+driver_information={}
+# initialize_registration_consumer(driver_information)
+registration_thread=Thread(target=initialize_registration_consumer,args=(driver_information,socketio))
+registration_thread.start()
+
 
 server_heartbeats={}
 heartbeat_thread = Thread(target=initialize_heartbeat_consumer, args=(server_heartbeats,socketio))
