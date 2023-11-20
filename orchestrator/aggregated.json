@@ -1,0 +1,4 @@
+[
+  "[{\"mean_Latency\":0.0054443027,\"min_Latency\":0.0025537014,\"max_Latency\":0.0226328373,\"median_latency\":0.0044822693,\"number_of_request\":66.0}]",
+  "[{\"mean_Latency\":0.0046605484,\"min_Latency\":0.0024659634,\"max_Latency\":0.0236198902,\"median_latency\":0.0039972067,\"number_of_request\":148.0},{\"mean_Latency\":0.0047530353,\"min_Latency\":0.0025362968,\"max_Latency\":0.0226328373,\"median_latency\":0.0040020943,\"number_of_request\":200.0},{\"mean_Latency\":0.0048080749,\"min_Latency\":0.0024454594,\"max_Latency\":0.023550272,\"median_latency\":0.0040766001,\"number_of_request\":144.0}]"
+]

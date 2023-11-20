@@ -43,17 +43,17 @@ def aggregated_driver(socketio):
     # print(df['test_id'][1:])
     aggregated_driver = df.groupby(['test_id','node_id']).apply(weighted_metrics)
     agg_driver = aggregated_driver.to_json(orient="records")
-    print(aggregated_driver)
+    print("agg driver = ",aggregated_driver)
 
     try:
         with open("aggregated.json", "r") as json_file:
-            existing_daxta = json.load(json_file)
+            existing_data = json.load(json_file)
     except FileNotFoundError:
         existing_data = []
 
-    existing_data.append(agg_driver)
+    existing_data.append(aggregated_driver)
 
-    with open("dashboard.json", "w") as json_file:
+    with open("aggregated.json", "w") as json_file:
         json.dump(existing_data, json_file, indent=2)
     
     total_aggregate = df.groupby('test_id').apply(weighted_metrics)
