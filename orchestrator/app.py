@@ -8,6 +8,7 @@ from flask_socketio import SocketIO
 import time
 from registration_consumer import initialize_registration_consumer
 from heartbeat_consumer import initialize_heartbeat_consumer
+import pandas as pd
 
 app = Flask(__name__)
 socketio = SocketIO(app)
