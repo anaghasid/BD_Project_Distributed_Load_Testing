@@ -35,7 +35,7 @@
             </form>
         </div>
         <div class="metrics-container">
-            <h1>Metrics and Heartbeats</h1>
+            <h1>Heartbeats</h1>
             <table>
                 <thead>
                     <tr>
@@ -45,6 +45,8 @@
                 </thead>
                 <tbody id="heartbeat_body"></tbody>        
             </table>
+
+            <h1>Individual Metrics</h1>
             <table>
                 <thead>
                     <tr>
@@ -60,14 +62,17 @@
             </table>
 
             <!-- New table with id, aggregate, and body -->
+            <h1>Aggregated Metrics</h1>
             <table>
                 <thead>
                     <tr>
+                        <th>test_id</th>
                         <th>node_id</th>
                         <th>mean_latency</th> 
                         <th>median_latency</th> 
                         <th>min_latency</th>  
                         <th>max_latency</th>
+                        <th>num_requests</th>
                     </tr>
                 </thead>
                 <tbody id="aggregate_body"></tbody>
@@ -125,7 +130,7 @@
         socket.on('metric_update', function (json_metric) {
             var metricBody = document.getElementById('metric_body');
             // metricBody.innerHTML = ''; // Clear existing entries
-            console.log("here", json_metric);
+            // console.log("here", json_metric);
 
             var node_id = json_metric['node_id'];
             var num_requests = json_metric['num_requests'];
@@ -157,28 +162,51 @@
         socket.on('aggregate_update', function (data) {
             var aggregateBody = document.getElementById('aggregate_body');
 
-            var node_id = data['node_id'];
-            var mean_latency = data['metrics']['mean_latency'];
-            var median_latency = data['metrics']['median_latency'];
-            var min_latency = data['metrics']['min_latency'];
-            var max_latency = data['metrics']['max_latency'];
-            
-            var rows = aggregateBody.insertRow();
-            // Iterate through the data and add rows to the new table
-            var cells1 = rows.insertCell(0);
-            var cells2 = rows.insertCell(1);
-            var cells3 = rows.insertCell(2);
-            var cells4 = rows.insertCell(3);
-            var cells5 = rows.insertCell(4);
-           
-            cells1.innerHTML = node_id;
-            cells2.innerHTML = mean_latency;
-            cells3.innerHTML = median_latency;
-            cells4.innerHTML = min_latency;
-            cells5.innerHTML = max_latency;
+            // Clear existing rows
+            while (aggregateBody.firstChild) {
+                aggregateBody.removeChild(aggregateBody.firstChild);
+            }
 
-            aggregateBody.appendChild(rows);
+            data = JSON.parse(data);
+
+            if (data && Array.isArray(data)) {
+                console.log("here");
+                data.forEach(element => {
+                    var test_id = element['test_id'];
+                    var node_id = element['node_id'];
+                    var mean_latency = element['mean_Latency'];
+                    var median_latency = element['median_latency'];
+                    var min_latency = element['min_Latency'];
+                    var max_latency = element['max_Latency'];
+                    var num_requests = element["number_of_request"];
+                    console.log(test_id, node_id, mean_latency, median_latency, min_latency, max_latency, num_requests)
+
+                    var rows = aggregateBody.insertRow();
+
+                    // Iterate through the data and add rows to the new table
+                    var cells0 = rows.insertCell(0)
+                    var cells1 = rows.insertCell(1);
+                    var cells2 = rows.insertCell(2);
+                    var cells3 = rows.insertCell(3);
+                    var cells4 = rows.insertCell(4);
+                    var cells5 = rows.insertCell(5);
+                    var cells6 = rows.insertCell(6)
+
+                    cells0.innerHTML = test_id;
+                    cells1.innerHTML = node_id;
+                    cells2.innerHTML = mean_latency;
+                    cells3.innerHTML = median_latency;
+                    cells4.innerHTML = min_latency;
+                    cells5.innerHTML = max_latency;
+                    cells6.innerHTML = num_requests;
+
+                    // aggregateBody.appendChild(rows); // No need to append rows individually
+                });
+            } else {
+                console.error("Data is undefined or not an array");
+            }
         });
+
     </script>
 </body>
 </html>

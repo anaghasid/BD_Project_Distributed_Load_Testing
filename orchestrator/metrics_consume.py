@@ -41,7 +41,7 @@ def aggregated_driver(socketio):
     total_aggregate = df.groupby('test_id').apply(weighted_metrics)
     total_agg_json = total_aggregate.to_json(orient="records")
     
-    socketio.emit('driver_aggregate',agg_driver)
+    socketio.emit('aggregate_update',agg_driver)
     socketio.emit('total_aggregate',total_agg_json)
 
 
