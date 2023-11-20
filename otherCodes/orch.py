@@ -9,8 +9,7 @@ import time
 from flask_socketio import SocketIO
 import uuid
 import csv
-import pandas as pd
-import os
+
 app = Flask(__name__)
 socketio = SocketIO(app)
 
@@ -103,12 +102,6 @@ def trigger_test():
         "test_id": current_test_configuration["test_id"],
         "trigger": "YES"
     }
-    kafka_consumer_thread = Thread(target=heart_beat_consumer)
-    kafka_consumer_thread.start()
-
-    heartbeat_checker_thread = Thread(target=check_server_heartbeats)
-    heartbeat_checker_thread.start()
-
     send_load_test_command(json.dumps(trigger_message), trigger_test_command_topic)
 
     return render_template('index.html', message="Test triggered successfully")
@@ -124,16 +117,6 @@ def heart_beat_consumer():
         pass
     finally:
         consumer.close()
-
-
-def check_server_heartbeats():
-    while True:
-        time.sleep(0.008)
-        for server, heartbeat_time in server_heartbeats.items():
-            current_time = time.time()
-            if current_time - heartbeat_time > 1.0 and heartbeat_time != 0:
-                print(f"Server {server} is not responding!")
-
 
 def weighted_metrics(df):
     test_id = df["test_id"]
@@ -152,9 +135,12 @@ def weighted_metrics(df):
         'number_of_request':total_requests
     })
 
-def aggregated_driver():
-    df = pd.read_csv('dashboard.csv')
-   
+def aggregated_driver(socketio):
+    with open("dashboard.json", "r") as json_file:
+        existing_data = json.load(json_file)
+
+# Convert the list of dictionaries to a DataFrame
+    df = pd.DataFrame(existing_data)
     aggregated_driver = df.groupby(['test_id','node_id']).apply(weighted_metrics).reset_index()
 
 
@@ -169,38 +155,56 @@ def aggregated_driver():
 
 
 def store_metric(metrics):
-    is_new_file = os.path.exists('dashboard.csv')
+    print("hi in metrics store")
+    node_id = metrics["node_id"]
+    test_id = metrics["test_id"]
+    report_id = metrics["report_id"]
+    num_requests = metrics["num_requests"]
+    mean = metrics["metrics"]["mean_latency"]
+    median = metrics["metrics"]["median_latency"]
+    mini = metrics["metrics"]["min_latency"]
+    maxi = metrics["metrics"]["max_latency"]
 
-    with open('dashboard.csv','a') as f:
-        node_id = metrics["node_id"]
-        test_id = metrics["test_id"]
-        report_id = metrics["report_id"]
-        num_requests = metrics["num_requests"]
-        mean = metrics["metrics"]["mean_latency"]
-        median = metrics["metrics"]["median_latency"]
-        mini = metrics["metrics"]["min_latency"]
-        maxi = metrics["metrics"]["max_latency"]
-        csv_writer = csv.writer(f)
-        if is_new_file:
-            # Add headers if the file is new
-            csv_writer.writerow(["node_id", "test_id", "num_requests", "mean_latency", "median_latency", "min_latency", "max_latency"])
-        csv_writer.writerow([node_id,test_id,report_id,num_requests,mean,median,mini,maxi])
+    metrics_data = {
+    "node_id": node_id,
+    "test_id": test_id,
+    "report_id": report_id,
+    "num_requests": num_requests,
+    "mean": mean,
+    "median": median,
+    "min_latency": mini,
+    "max_latency": maxi,
+    }
+    print(metrics_data,"is here")
+
+    # Dump the JSON object to a file
+    try:
+        with open("dashboard.json", "r") as json_file:
+            existing_data = json.load(json_file)
+    except FileNotFoundError:
+        existing_data = []
+    existing_data.append(metrics_data)
+    with open("dashboard.json", "w") as json_file:
+        json.dump(existing_data, json_file, indent=4)
+
+
+def check_server_heartbeats():
+    while True:
+        time.sleep(0.1)
+        for server, heartbeat_time in server_heartbeats.items():
+            current_time = time.time()
+            if current_time - heartbeat_time > 0.5 and heartbeat_time != 0:
+                print(f"Server {server} is not responding!")
 
 def metrics_consumer():
     consumer = KafkaConsumer(metrics_topic, bootstrap_servers='localhost:9092')
     try:
-        st = time.time()
         for message in consumer:
             json_metric = json.loads(message.value.decode('utf-8'))
             print(json_metric)
             store_metric(json_metric)
             print()
-            if time.time() - st >=1:
-                aggregated_driver()
-                st = time.time()
-            
             socketio.emit('metric_update', json_metric)
-
     except KeyboardInterrupt:
         pass
     finally:
@@ -208,7 +212,11 @@ def metrics_consumer():
 
 
 get_driver_info()
+kafka_consumer_thread = Thread(target=heart_beat_consumer)
+kafka_consumer_thread.start()
 
+heartbeat_checker_thread = Thread(target=check_server_heartbeats)
+heartbeat_checker_thread.start()
 
 metrics_consumer_thread = Thread(target=metrics_consumer)
 metrics_consumer_thread.start()
