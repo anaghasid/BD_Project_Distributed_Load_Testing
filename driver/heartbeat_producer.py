@@ -17,7 +17,8 @@ def produce_heartbeats():
     count=0
     heartbeat_message = {
         "node_id": hostname,
-        "heartbeat": "YES"
+        "heartbeat": "YES",
+        "timestamp": time.time()
     }
     heartbeat_message=json.dumps(heartbeat_message)
 

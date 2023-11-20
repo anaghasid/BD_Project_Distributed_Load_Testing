@@ -1,47 +1,15 @@
-#!/usr/bin/env python3
-
-from flask import Flask
-from kafka import KafkaProducer, KafkaConsumer
-from threading import Thread
-import socket, json, time, requests
+from kafka import KafkaProducer,KafkaConsumer
 import uuid
+import time
+import json
+import requests
 
-app = Flask(__name__)
+consumer_conf = {
+        'bootstrap_servers': "bd_project_distributed_load_testing-kafka_node-1:9092",
+    }
+topic_metrics  = 'metrics'
 
-consumer_config = {
-    'bootstrap.servers': 'localhost:9092',
-    'group.id': 'load_test_group',
-    'auto.offset.reset': 'earliest',
-}
-
-producer_config = {
-    'bootstrap_servers': "localhost:9092",
-}
-
-topic_config = "test_config"
-topic_trig = "trigger"
-topic_heartbeat = "heartbeat"
-topic_metrics = "metrics"
-
-target_url = "http://localhost:5002/test_endpoint"
-
-
-def register_with_kafka():
-    registration_producer = KafkaProducer(bootstrap_servers='localhost:9092')
-
-    hostname = socket.gethostname()
-    node_IP = socket.gethostbyname(hostname)
-    node_ID = hostname + '3'
-
-    registration_info = {"node_IP": node_IP, "node_id": node_ID, "message_type": "DRIVER_NODE_REGISTER"}
-    registration_producer.send("register", json.dumps(registration_info).encode("utf-8"))
-    print("send driver info", registration_info)
-    registration_producer.flush()
-    registration_producer.close()
-    return registration_info
-
-
-def publish_metrics(test_id,responses):
+def publish_metrics(node_info,test_id,responses):
     producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
     ascending_responses = sorted(responses)
@@ -58,12 +26,15 @@ def publish_metrics(test_id,responses):
         "num_requests":len(responses),
         "metrics": metrics
     }
+    with open(f'driver_storage_{node_info["node_id"]}.json','a') as f:
+        f.append(json.dumps(metrics_message,indent=4))
     print("Metrics message sending",metrics_message)
     producer.send(topic_metrics, value=json.dumps(metrics_message).encode('utf-8'))
     producer.flush()
 
-def perform_load_test(test_id, test_type, delay, total_req):
-    global response_times
+def perform_load_test(node_info,test_id, test_type, delay, total_req):
+    global topic_metrics
+    target_url = 'http://localhost:5003:/metrics'
     response_times = []
     if test_type == 'tsunami':
         metrics_start = time.time()
@@ -86,7 +57,7 @@ def perform_load_test(test_id, test_type, delay, total_req):
             # pray to god that delay > latency
             # also pray to god that delay << 1s
             time.sleep((int(delay)-latency)/1000)
-        publish_metrics(test_id,response_times)
+        publish_metrics(node_info,test_id,response_times)
 
     if test_type=='avalanche':
         metrics_start = time.time()
@@ -107,8 +78,8 @@ def perform_load_test(test_id, test_type, delay, total_req):
         publish_metrics(test_id,response_times)
 
 
-def consume_commands():
-    global consumer_config, topic_config, topic_trig
+def consume_commands(node_info):
+    global consumer_config,topic_config,topic_trig
     print("hiiii")
     consumer = KafkaConsumer(bootstrap_servers='localhost:9092')
     consumer.subscribe([topic_config, topic_trig])
@@ -131,41 +102,12 @@ def consume_commands():
 
             elif msg_topic == "trigger":
                 print("Received Trigger Message. Starting Load Test...")
-                perform_load_test(test_id, test_type, interval_seconds, total_requests)
+                perform_load_test(node_info,test_id, test_type, interval_seconds, total_requests)
 
     except KeyboardInterrupt:
         pass
     finally:
         consumer.close()
 
-def send_heartbeat(registration_info):
-    producer = KafkaProducer(**producer_config)
-    heartbeat_interval = 0.04
-    heartbeat_message = {
-        "node_id": registration_info,
-        "heartbeat": "YES",
-        "timestamp": time.time()
-    }
-    try:
-        while True:
-            sending = json.dumps(heartbeat_message)
-            producer.send(topic_heartbeat, value=sending.encode('utf-8'))
-            producer.flush()
-            time.sleep(heartbeat_interval)
-    except KeyboardInterrupt:
-        pass
-
-node_info = register_with_kafka()
-kafka_consumer_thread = Thread(target=consume_commands)
-kafka_consumer_thread.start()
-
-heartbeat_checker_thread = Thread(target=send_heartbeat, args=(node_info["node_id"],))
-heartbeat_checker_thread.start()
-
-
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World, Drivers</p>"
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5003)
+def initialize_produce_metrics(node_info):
+    consume_commands(node_info)

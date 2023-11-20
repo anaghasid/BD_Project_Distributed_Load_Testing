@@ -9,6 +9,7 @@ import time
 from registration_consumer import initialize_registration_consumer
 from heartbeat_consumer import initialize_heartbeat_consumer
 import pandas as pd
+from metrics_consume import initialize_metrics_consumer
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -41,6 +42,10 @@ registration_thread.start()
 server_heartbeats={}
 heartbeat_thread = Thread(target=initialize_heartbeat_consumer, args=(server_heartbeats,socketio))
 heartbeat_thread.start()
+# heartbeat_check = Thread(target=initiliaze_heartbeat_checker,args=(server_heartbeats,socketio))
+metrics_consumer_thread = Thread(target=initialize_metrics_consumer,args=(socketio,))
+metrics_consumer_thread.start()
+
 
 
 @app.route("/driver_info")

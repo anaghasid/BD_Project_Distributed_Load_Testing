@@ -6,10 +6,12 @@ import socket,json,time
 from heartbeat_producer import heartbeat_producer
 from threading import Thread
 import pandas as pd
+from produce_metrics import initialize_produce_metrics
+
 
 app = Flask(__name__)
 
-
+response_times = []
 def register_with_kafka():
     time.sleep(15) #give some time for kafka to start up completely
 
@@ -29,12 +31,18 @@ def register_with_kafka():
     registration_producer.flush()
     registration_producer.close()
 
+    return registration_info
+
 # @app.before_first_request
 # def do_something_only_once():
-register_with_kafka()
+node_info = register_with_kafka()
 
 heartbeat_thread = Thread(target=heartbeat_producer)
 heartbeat_thread.start()
+
+metrics_produce_thread = Thread(target=initialize_produce_metrics,args=(node_info,))
+metrics_produce_thread.start()
+
 
 
 # view this at http://localhost:5000
