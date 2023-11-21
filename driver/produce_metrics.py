@@ -70,7 +70,7 @@ def perform_load_test(node_info,test_id, test_type, delay, total_req):
             start = time.time()
             response = requests.get(target_url)
             end = time.time()
-            latency = float((end - start) / 1000)
+            latency = float((end - start))
             response_times.append(latency)
 
             # print("time passed=",time.time() - metrics_start)
@@ -96,7 +96,6 @@ def consume_commands(node_info):
             msg_topic = msg.topic
             print(msg_topic)
             if msg_topic == "test_config":
-                global test_id, test_type, interval_seconds
                 test_id = command.get("test_id")
                 test_type = command.get("test_type")
                 interval_seconds = command.get("test_message_delay")

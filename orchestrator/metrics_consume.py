@@ -37,7 +37,7 @@ def aggregated_driver(socketio):
 
     # print(df['test_id'][1:])
     agg_driver = aggregated_driver.to_json(orient="records")
-    print("agg driver = ",agg_driver)
+    # print("agg driver = ",agg_driver)
     
     total_aggregate = df.groupby('test_id').apply(weighted_metrics)
     total_agg_json = total_aggregate.to_json(orient="records")
@@ -45,12 +45,6 @@ def aggregated_driver(socketio):
     socketio.emit('aggregate_update',agg_driver)
     socketio.emit('total_aggregate',total_agg_json)
 
-def thread_aggr(socketio):
-    curr_time = time.time()
-    while(True):
-        if time.time()-curr_time >=0.5:
-            aggregated_driver(socketio)
-            curr_time = time.time()
 
 def store_metric(metrics,socketio):
     # print("hi in metrics store")
@@ -89,7 +83,7 @@ def store_metric(metrics,socketio):
     with open("dashboard.json", "w") as json_file:
         json.dump(existing_data, json_file, indent=4)
 
-def metrics_consumer(socketio,aggr_thread):
+def metrics_consumer(socketio):
     # global aggr_thread
     consumer = KafkaConsumer("metrics",**metrics_consumer_conf)
     print(f"metrics consumer in {socket.gethostname()} is now active")
@@ -100,10 +94,8 @@ def metrics_consumer(socketio,aggr_thread):
             json_metric = json.loads(message.value.decode('utf-8'))
             # print(json_metric,"in metrics_consumer")
             store_metric(json_metric,socketio)
+            aggregated_driver(socketio)
             print(socket)
-            if(not ct):
-               aggr_thread.start()
-               ct = True
             print(json_metric)
             socketio.emit('metric_update', json_metric)
 
@@ -112,5 +104,4 @@ def metrics_consumer(socketio,aggr_thread):
     finally:
         consumer.close()
 def initialize_metrics_consumer(socketio):
-    aggr_thread  = Thread(target = thread_aggr,args  = (socketio,))
-    metrics_consumer(socketio,aggr_thread)
+    metrics_consumer(socketio)
