@@ -62,7 +62,7 @@
             </table>
 
             <!-- New table with id, aggregate, and body -->
-            <h1>Aggregated Metrics</h1>
+            <h1>Aggregated Metrics (within driver nodes)</h1>
             <table>
                 <thead>
                     <tr>
@@ -76,6 +76,21 @@
                     </tr>
                 </thead>
                 <tbody id="aggregate_body"></tbody>
+            </table>
+
+            <h1>Aggregated Metrics (across driver nodes)</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <!-- <th>test_id</th> -->
+                        <th>mean_latency</th> 
+                        <th>median_latency</th> 
+                        <th>min_latency</th>  
+                        <th>max_latency</th>
+                        <th>num_requests</th>
+                    </tr>
+                </thead>
+                <tbody id="full_aggregate_body"></tbody>
             </table>
         </div>
     </div>
@@ -170,7 +185,7 @@
             data = JSON.parse(data);
 
             if (data && Array.isArray(data)) {
-                console.log("here");
+                // console.log("here");
                 data.forEach(element => {
                     var test_id = element['test_id'];
                     var node_id = element['node_id'];
@@ -179,7 +194,7 @@
                     var min_latency = element['min_Latency'];
                     var max_latency = element['max_Latency'];
                     var num_requests = element["number_of_request"];
-                    console.log(test_id, node_id, mean_latency, median_latency, min_latency, max_latency, num_requests)
+                    // console.log(test_id, node_id, mean_latency, median_latency, min_latency, max_latency, num_requests)
 
                     var rows = aggregateBody.insertRow();
 
@@ -204,8 +219,37 @@
                 });
             } else {
                 console.error("Data is undefined or not an array");
+
             }
         });
+
+        socket.on("total_aggregate",function(data){
+            data=JSON.parse(data)
+            console.log(data)
+            var fullAggregateBody = document.getElementById('full_aggregate_body');
+
+            data.forEach(element=>{
+                var mean_latency = element['mean_Latency'];
+                var median_latency = element['median_latency'];
+                var min_latency = element['min_Latency'];
+                var max_latency = element['max_Latency'];
+                var num_requests = element["number_of_request"];
+
+                var rows = fullAggregateBody.insertRow();
+
+                var cells0 = rows.insertCell(0)
+                var cells1 = rows.insertCell(1);
+                var cells2 = rows.insertCell(2);
+                var cells3 = rows.insertCell(3);
+                var cells4 = rows.insertCell(4);
+
+                cells0.innerHTML = mean_latency;
+                cells1.innerHTML = median_latency;
+                cells2.innerHTML = min_latency;
+                cells3.innerHTML = max_latency;
+                cells4.innerHTML = num_requests;
+            })
+        })
 
     </script>
 </body>
