@@ -77,8 +77,8 @@ def perform_load_test(node_info,test_id, test_type, delay, total_req):
                 publish_metrics(node_info,test_id,response_times)
                 response_times = []
                 metrics_start = time.time()
-
-        publish_metrics(test_id,response_times)
+        
+        publish_metrics(node_info,test_id,response_times)
 
 
 def consume_commands(node_info):
