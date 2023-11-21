@@ -47,11 +47,11 @@ def perform_load_test(node_info,test_id, test_type, delay, total_req):
             response = requests.get(target_url)
             end = time.time()
             latency = float((end - start))
-            print("Latency is",latency)
+            # print("Latency is",latency)
             response_times.append(latency)
 
 
-            print("time passed=",time.time() - metrics_start)
+            # print("time passed=",time.time() - metrics_start)
             if time.time() - metrics_start >= 0.5:
                 publish_metrics(node_info,test_id,response_times)
                 response_times = []
@@ -66,14 +66,14 @@ def perform_load_test(node_info,test_id, test_type, delay, total_req):
     if test_type=='avalanche':
         metrics_start = time.time()
         for i in range(int(total_req)):
-            print("request number:", i)
+            # print("request number:", i)
             start = time.time()
             response = requests.get(target_url)
             end = time.time()
-            latency = float((end - start) * 1000)
+            latency = float((end - start) / 1000)
             response_times.append(latency)
 
-            print("time passed=",time.time() - metrics_start)
+            # print("time passed=",time.time() - metrics_start)
             if time.time() - metrics_start >= 0.5:          
                 publish_metrics(node_info,test_id,response_times)
                 response_times = []

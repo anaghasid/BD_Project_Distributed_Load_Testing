@@ -228,6 +228,8 @@
             console.log(data)
             var fullAggregateBody = document.getElementById('full_aggregate_body');
 
+            fullAggregateBody.innerHTML=''
+
             data.forEach(element=>{
                 var mean_latency = element['mean_Latency'];
                 var median_latency = element['median_latency'];
