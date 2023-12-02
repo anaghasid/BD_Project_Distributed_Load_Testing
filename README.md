@@ -1,24 +1,38 @@
 # BD_Project_Distributed_Load_Testing
 
-## Set up dev env
+### The project specifications are listed listed in the Distributed_Load_Testing.pdf file.
 
-### Note in the compose file that we are not running it in the debug mode. Results may be different in that case.
+### This project aims to conduct distributed load testing using Docker containers to simulate kafka, orchestrator , driver and target server nodes.
 
-You can now specify the number of driver nodes you want using the command
+To start the distributed load testing run the command 
 
-`docker-compose up -d --scale driver_node <number_of_driver_nodes>`
+`docker-compose up -d --scale driver_node=<number_of_driver_nodes>`
 
-For 8 driver nodes http://localhost:5000/ must appear like this
+***Note:*** The tests haven't been run with more than 8 driver nodes. ***Try at your own risk.***
 
-![Screenshot (20)](https://github.com/anaghasid/BD_Project_Distributed_Load_Testing/assets/112763290/d61caa56-8a7d-4326-b20e-6e944feacc98)
+After a successful startup, the driver nodes register and send heartbeats to the orchestrator node, as demonstrated in the video below for 8 driver nodes.
 
-All logs could be inspected using Docker Desktop or running `docker logs <container_id>`
+https://github.com/anaghasid/BD_Project_Distributed_Load_Testing/assets/112763290/2ab6972d-0f64-4484-82ec-7a12ff121d5f
+
+### The definitions of tsunami and avalanche testing are listed in the Distributed_Load_Testing.pdf
+
+### Tsunami Testing
+Video demonstration of tsunami testing is attached below.
+
+https://github.com/anaghasid/BD_Project_Distributed_Load_Testing/assets/112763290/319f2981-a11b-48a1-82fb-45e6de2e49e6
+
+### Avalanche Testing
+Video demonstration of avalanche testing is attached below.
+
+https://github.com/anaghasid/BD_Project_Distributed_Load_Testing/assets/112763290/698e2bc0-89f2-42c4-806b-a364354463af
 
 Shut down all containers using 
 
 `docker-compose down`
 
 ## Trouble Shooting docs
+
+All logs could be inspected using Docker Desktop or running `docker logs <container_id>`
 
 The most common error faced was NoBrokersAvailableError()
 
