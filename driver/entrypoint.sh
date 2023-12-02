@@ -1,4 +1,3 @@
-#!/bin/bash
-
 rm *.json
+echo "hello"
 flask run --host=0.0.0.0 --port=5000

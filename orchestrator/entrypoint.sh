@@ -1,4 +1,3 @@
-#!/bin/bash
-
 rm *.json
-flask run --host=0.0.0.0 --port 5000
+echo "hello"
+flask run --host=0.0.0.0 --port=5000
