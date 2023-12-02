@@ -34,7 +34,7 @@ services:
       context: ./orchestrator
       dockerfile: Dockerfile  
     image: orchestrator-node:4.0
-    entrypoint: ['sh','entrypoint.sh']
+    entrypoint: ['sh','./entrypoint.sh']
     ports:
       - "5000:5000"
     networks:
@@ -64,7 +64,7 @@ services:
       context: ./driver
       dockerfile: Dockerfile  
     image: driver-node:5.0
-    entrypoint: ['sh','entrypoint.sh']
+    entrypoint: ['sh','./entrypoint.sh']
     networks:
       - my-network
     volumes:
