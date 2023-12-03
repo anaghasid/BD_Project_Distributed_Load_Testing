@@ -1,5 +1,0 @@
-added UUID for current_test_id in orchestrator
-
-TO DO
-final metrics dashboard
-reset dashboard.csv after each
